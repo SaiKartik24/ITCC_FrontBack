@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Grid,
@@ -16,36 +16,32 @@ import {
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import Registration from './Registration';
-import usePost from '../../ServiceHelper/Api/usePost';
-import {AuthContext } from '../../ServiceHelper/AuthContext';
+import { useAuth } from "../../ServiceHelper/AuthContext";
+// import usePost from '../Services/usePost';
 
 const Login = () => {
-  const { login } = useContext(AuthContext);
   const { control, handleSubmit, formState: { errors } } = useForm({ mode: 'onTouched' });
   const [open, setOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
   const [triggerPost, setTriggerPost] = useState(false);
-  const [postUrl, setPostUrl] = useState("");
-  const [postData, setPostData] = useState(null);
-  const { response, loading, error } = usePost(postUrl, postData, triggerPost);
+//   const { saveToken } = useAuth();
   const navigate = useNavigate();
- // const { saveToken } = useAuth(); // Use the saveToken function from AuthContext
+
+  const [postData, setPostData] = useState(null);
+  const { response, loading, error } = usePost('/login', postData, triggerPost);
 
   const onSubmit = async (data) => {
-    setTriggerPost(false);
+    setTriggerPost(false); // Reset trigger
     setPostData({ email: data.email, password: data.password });
-    setPostUrl("http://172.17.15.253:3002/login");
-    setTriggerPost(true);
+    setTriggerPost(true); // Trigger post request
   };
 
   useEffect(() => {
     if (response) {
-      console.log(response);
-      login(response.token);
-      //saveToken(response.token); 
-       navigate('/dashboard'); 
+      saveToken(response.token);
+      navigate('/dashboard');
     }
-  }, [response, navigate]);
+  }, [response, navigate, saveToken]);
 
   useEffect(() => {
     if (error) {
@@ -76,7 +72,7 @@ const Login = () => {
                   Don't Have an Account? Create your Account
                 </Typography>
 
-                <Controller name="email"  control={control} defaultValue=""
+                <Controller name="email" control={control} defaultValue=""
                   rules={{
                     required: "Email Id is Required",
                     pattern: { value: /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/, message: "Invalid email format" }
@@ -118,7 +114,7 @@ const Login = () => {
                   </Grid>
                   <Grid item>
                     <Button variant="contained" color="primary" type="submit" disabled={loading}>
-                      {/* {loading ? 'Signing In...' : 'Sign In'} */}  Sign In
+                      {loading ? 'Signing In...' : 'Sign In'}
                     </Button>
                   </Grid>
                 </Grid>

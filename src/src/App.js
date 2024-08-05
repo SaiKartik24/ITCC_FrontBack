@@ -1,20 +1,19 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './ServiceHelper/AuthContext'
 import Login from './Pages/Authentication/Login';
 import Registration from './Pages/Authentication/Registration';
 import Dashboard from './Pages/Dashboard';
 import Admin from './Pages/Admin/Admin';
 import AdminDashboard from './Pages/Admin/AdminDashboard';
-import CommunityDetails from './Pages/Admin/CommunityDetails';
 import Communities from './Pages/Admin/Communities';
-import Users from './Pages/User/Users'
-import UserList from './Pages/Admin/UserList'
-import UserDetails from './Pages/Admin/UserDetails'
-
+import UserList from './Pages/Admin/UserList';
+import UserDetails from './Pages/Admin/UserDetails';
+import CommunityDetails from './Pages/Admin/CommunityDetails';
 
 export default function App() {
-  
+  const loginRes = JSON.parse(localStorage.getItem('logindata'));
+  console.log(loginRes?.success);
+
   return (
     <Router>
       <Routes>
@@ -26,8 +25,7 @@ export default function App() {
           <Route path="admin-community" element={<Communities />} />
           <Route path="users-list" element={<UserList />} />
           <Route path="users-details" element={<UserDetails />} />
-          <Route path="community-details" element={<CommunityDetails/>} />
-          <Route path="user-dashboard" element={<Users/>} />
+          <Route path="community-details" element={<CommunityDetails />} />
         </Route>
       </Routes>
     </Router>
