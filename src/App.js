@@ -11,6 +11,7 @@ import Communities from './Pages/Admin/Communities';
 import Users from './Pages/Users/Users'
 import UserList from './Pages/Admin/UserList'
 import UserDetails from './Pages/Admin/UserDetails'
+import Posts from './Pages/Posts/Post'
 export default function App() {
   
   return (
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="users-details" element={<UserDetails />} />
           <Route path="community-details" element={<CommunityDetails/>} />
           <Route path="user-dashboard" element={<Users/>} />
+          <Route path="post" element={<Posts/>} />
         </Route>
       </Routes>
     </Router>
