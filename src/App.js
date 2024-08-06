@@ -13,6 +13,7 @@ import UserList from './Pages/Admin/UserList'
 import UserDetails from './Pages/Admin/UserDetails'
 import Posts from './Pages/Posts/Post'
 import Articles from './Pages/Articles/Articles';
+import ViewArticles from './Pages/Articles/ViewArticle';
 export default function App() {
   
   return (
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="user-dashboard" element={<Users/>} />
           <Route path="post" element={<Posts/>} />
           <Route path="articles" element={<Articles/>} />
+          <Route path="view-articles" element={<ViewArticles/>} />
         </Route>
       </Routes>
     </Router>
