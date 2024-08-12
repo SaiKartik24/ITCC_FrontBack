@@ -17,8 +17,9 @@ const useGet = (url) => {
         setLoading(false);
       }
     };
-
-    fetchData();
+    if (url) {
+      fetchData();
+    }
   }, [url]);
 
   return { data, loading, error };
