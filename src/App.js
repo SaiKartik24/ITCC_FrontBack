@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './ServiceHelper/AuthContext'
 import Login from './Pages/Authentication/Login';
 import Registration from './Pages/Authentication/Registration';
 import Dashboard from './Pages/Dashboard';
@@ -8,11 +7,12 @@ import Admin from './Pages/Admin/Admin';
 import AdminDashboard from './Pages/Admin/AdminDashboard';
 import CommunityDetails from './Pages/Admin/CommunityDetails';
 import Communities from './Pages/Admin/Communities';
-import Users from './Pages/User/Users'
+import Users from './Pages/Users/Users'
 import UserList from './Pages/Admin/UserList'
 import UserDetails from './Pages/Admin/UserDetails'
-
-
+import Posts from './Pages/Posts/Post'
+import Articles from './Pages/Articles/Articles';
+import ViewArticles from './Pages/Articles/ViewArticle';
 export default function App() {
   
   return (
@@ -28,8 +28,12 @@ export default function App() {
           <Route path="users-details" element={<UserDetails />} />
           <Route path="community-details" element={<CommunityDetails/>} />
           <Route path="user-dashboard" element={<Users/>} />
+          <Route path="post" element={<Posts/>} />
+          <Route path="articles" element={<Articles/>} />
+          <Route path="view-articles" element={<ViewArticles/>} />
         </Route>
       </Routes>
     </Router>
   );
 }
+

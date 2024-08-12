@@ -25,7 +25,7 @@ function Registration(props) {
 
   useEffect(() => {
     if (getUrl === "") {
-      setGetUrl("/users/getCommunity");
+      setGetUrl("/lookup/getCommunity");
     }
     if (getHook.data !== null) {
       setCommunity(getHook.data);
