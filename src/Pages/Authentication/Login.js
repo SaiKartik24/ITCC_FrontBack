@@ -1,23 +1,10 @@
-import React, { useState, useEffect, useContext } from 'react';
-import {
-  Container,
-  Grid,
-  Paper,
-  TextField,
-  Button,
-  Typography,
-  Link,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions
-} from '@mui/material';
+import React, { useState, useContext, useEffect } from 'react';
+import { Container, Grid, Paper, TextField, Button, Typography, Link, Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText } from '@mui/material';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import Registration from './Registration';
 import usePost from '../../ServiceHelper/Api/usePost';
-import {AuthContext } from '../../ServiceHelper/AuthContext';
+import { AuthContext } from '../../ServiceHelper/AuthContext';
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -29,21 +16,26 @@ const Login = () => {
   const [postData, setPostData] = useState(null);
   const { response, loading, error } = usePost(postUrl, postData, triggerPost);
   const navigate = useNavigate();
- // const { saveToken } = useAuth(); // Use the saveToken function from AuthContext
 
   const onSubmit = async (data) => {
-    setTriggerPost(false);
-    setPostData({ email: data.email, password: data.password });
-    setPostUrl("http://172.17.15.253:3002/login");
-    setTriggerPost(true);
+    try {
+      if (!triggerPost) {
+        setTriggerPost(true);
+        setPostData({
+          email: data.email,
+          password: data.password,
+        });
+        setPostUrl("/login");
+      }
+    } catch (error) {
+      console.error("Error during login:", error);
+    }
   };
 
   useEffect(() => {
     if (response) {
-      console.log(response);
       login(response.token);
-      //saveToken(response.token); 
-       navigate('/dashboard'); 
+      navigate('/dashboard');
     }
   }, [response, navigate]);
 
@@ -76,7 +68,7 @@ const Login = () => {
                   Don't Have an Account? Create your Account
                 </Typography>
 
-                <Controller name="email"  control={control} defaultValue=""
+                <Controller name="email" control={control} defaultValue=""
                   rules={{
                     required: "Email Id is Required",
                     pattern: { value: /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/, message: "Invalid email format" }
@@ -118,7 +110,7 @@ const Login = () => {
                   </Grid>
                   <Grid item>
                     <Button variant="contained" color="primary" type="submit" disabled={loading}>
-                      {/* {loading ? 'Signing In...' : 'Sign In'} */}  Sign In
+                      Sign In
                     </Button>
                   </Grid>
                 </Grid>
@@ -153,7 +145,7 @@ const Login = () => {
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
           <Button onClick={handleClose} autoFocus>
-            Reset Password
+            Submit
           </Button>
         </DialogActions>
       </Dialog>

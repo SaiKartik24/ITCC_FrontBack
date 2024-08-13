@@ -113,7 +113,7 @@ export default function MixedCharts() {
           <Grid container spacing={2}>
             <Grid item xs={12} md={3}>
               <FormControl variant="outlined" size="small" fullWidth>
-                <InputLabel id="field3-label">Category</InputLabel>
+                <InputLabel id="field3-label">Communities</InputLabel>
                 <Select
                   labelId="field3-label"
                   id="field3"

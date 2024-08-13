@@ -43,6 +43,7 @@ export default function CommunityDetails() {
       <Tabs value={value} onChange={handleChange} aria-label="community tabs">
         <Tab label="Community Users" />
         <Tab label="Community Posts" />
+        <Tab label="Community Articals" />
       </Tabs>
       {value === 0 && (
         <Box p={3}>

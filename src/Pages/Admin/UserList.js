@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
@@ -9,6 +9,8 @@ import { styled } from '@mui/material/styles';
 import { IconButton, InputBase, Paper, Fab } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
+import { AuthContext } from '../../ServiceHelper/AuthContext';
+import usePost from '../../ServiceHelper/Api/usePost';
 
 const UserCard = styled(Card)(({ theme }) => ({
   borderRadius: 5,
@@ -28,50 +30,61 @@ const TruncatedText = styled(Typography)(({ theme }) => ({
   whiteSpace: 'nowrap',
 }));
 
-
-const cardData = [
-  {
-    img: 'https://talk.miraclesoft.com/avatar/snistala',
-    userName: "Karthik Nistala",
-    communityName: 'Angular Community.',
-    questions: "3",
-    solution: 4,
-  },
-  {
-    img: 'https://talk.miraclesoft.com/avatar/snistala',
-    userName: "Karthik Nistala",
-    communityName: 'Angular Community.',
-    questions: "3",
-    solution: 4,
-  }, {
-    img: 'https://talk.miraclesoft.com/avatar/snistala',
-    userName: "Karthik Nistala",
-    communityName: 'Angular Community.',
-    questions: "3",
-    solution: 4,
-  }, {
-    img: 'https://talk.miraclesoft.com/avatar/snistala',
-    userName: "Karthik Nistala",
-    communityName: 'Angular Community.',
-    questions: "3",
-    solution: 4,
-  }, {
-    img: 'https://talk.miraclesoft.com/avatar/snistala',
-    userName: "Karthik Nistala",
-    communityName: 'Angular Community.',
-    questions: "3",
-    solution: 4,
-  }, {
-    img: 'https://talk.miraclesoft.com/avatar/snistala',
-    userName: "Karthik Nistala",
-    communityName: 'Angular Community.',
-    questions: "3",
-    solution: 4,
-  },
-];
-
 export default function UserList() {
+  const { token } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
+  const [communities, setCommunities] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // Fetch user data
+        const userResponse = await fetch('http://172.17.15.253:3002/users', {
+          method: 'GET',
+          headers: {
+            observe: 'response',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!userResponse.ok) {
+          throw new Error('API request failed');
+        }
+        const userData = await userResponse.json();
+        setUsers(userData);
+
+        // Fetch community data
+        const communityResponse = await fetch('http://172.17.15.253:3002/lookup/getCommunity', {
+          method: 'GET',
+          headers: {
+            observe: 'response',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!communityResponse.ok) {
+          throw new Error('API request failed');
+        }
+        const communityData = await communityResponse.json();
+        const communityMap = communityData.reduce((acc, community) => {
+          acc[community.value] = community.label; // Map ID to community name
+          return acc;
+        }, {});
+        setCommunities(communityMap);
+
+      } catch (error) {
+        console.error('API error:', error);
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [token]);
 
   const handleCardClick = () => {
     navigate('/users-details');
@@ -80,6 +93,9 @@ export default function UserList() {
   const handleFabClick = () => {
     console.log('FAB clicked');
   };
+
+  if (loading) return <Typography>Loading...</Typography>;
+  if (error) return <Typography>Error loading data</Typography>;
 
   return (
     <>
@@ -101,29 +117,43 @@ export default function UserList() {
       </Grid>
       <br />
       <Grid container spacing={2}>
-        {cardData.map((card, index) => (
+        {users.map((user, index) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
             <UserCard onClick={handleCardClick}>
               <CardContent>
                 <Grid container spacing={2}>
                   <Grid item xs={4}>
                     <Avatar
-                      alt={card.userName}
-                      src={card.img}
+                      alt={user.firstName}
+                      src={user.profilePicture || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIAgM6sos3TKKOp9xjnHJHYXTQGAq6hJfSJQ&s"} 
                       sx={{ width: 56, height: 56 }}
                     />
                   </Grid>
                   <Grid item xs={8}>
-                    <TruncatedText variant="h6">{card.userName}</TruncatedText>
+                    <TruncatedText variant="h6">{user.firstName} {user.lastName}</TruncatedText>
+                    {/* <TruncatedText variant="body2" color="text.secondary">
+                      {user.email}
+                    </TruncatedText> */}
                     <TruncatedText variant="body2" color="text.secondary">
-                      {card.communityName}
+                      {user.community.map(id => communities[id] || 'Unknown Community').join(', ')}
                     </TruncatedText>
                     <Typography variant="body2" color="text.secondary">
-                      <strong>Questions count:</strong> {card.questions}
+                      <strong>Questions:</strong>
+                       {/* {card.questions} */}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      <strong>Solution count:</strong> {card.solution}
+                      <strong>Answers:</strong> 
+{/* {card.solution} */}
+                     </Typography>
+                    {/* <Typography variant="body2" color="text.secondary">
+                      <strong>Points:</strong> {user.points}
                     </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Status:</strong> {user.status === "1" ? 'Active' : 'Inactive'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Role:</strong> {user.userRole}
+                    </Typography> */}
                   </Grid>
                 </Grid>
               </CardContent>

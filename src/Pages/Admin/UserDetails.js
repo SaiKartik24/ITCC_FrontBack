@@ -51,8 +51,8 @@ export default function UserDetails() {
       {tabValue === 'stats' && (
         <Box p={2}>
           <Typography>Points: 373</Typography>
-          <Typography>Answers: 29</Typography>
           <Typography>Questions: 16</Typography>
+          <Typography>Answers: 29</Typography>
         </Box>
       )}
       {tabValue === 'posts' && (

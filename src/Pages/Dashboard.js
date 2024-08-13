@@ -233,6 +233,15 @@ export default function Dashboard() {
               <ListItemText primary="Articles" />
             </ListItemButton>
           </ListItem>
+
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => navigate('/user-post')}>
+              <ListItemIcon>
+                <GroupIcon />
+              </ListItemIcon>
+              <ListItemText primary="Posts" />
+            </ListItemButton>
+          </ListItem>
         </List>} 
       </Drawer>
       <Main open={open}>

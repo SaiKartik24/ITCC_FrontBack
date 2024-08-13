@@ -11,7 +11,8 @@ import { useNavigate } from 'react-router-dom';
 import { Fab, IconButton, InputBase, Paper } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
-
+import useGet from '../../ServiceHelper/Api/useGet';
+import { useEffect } from 'react';
 
 const UserCard = styled(Card)(({ theme }) => ({
   borderRadius: 5,
@@ -27,42 +28,22 @@ const UserCard = styled(Card)(({ theme }) => ({
   height: '100%',
 }));
 
-const cardData = [
-  {
-    communityName: "Angular",
-    description: 'Angular is an open-source web application framework maintained by Google and a community of developers.',
-    Questions: "/static/images/cards/contemplative-reptile.jpg",
-    User: 45,
-    Tech: "Another description about lizards.",
-  },
-  {
-    communityName: "React JS",
-    description: 'ReactJS, also known as React, is a popular JavaScript library for building user interfaces.',
-    Questions: "/static/Questionss/cards/contemplative-reptile.jpg",
-    User: 78,
-    Tech: "Another description about lizards.",
-  },
-  {
-    communityName: "JavaScript",
-    description: 'JavaScript is a scripting language that enables you to create dynamically updating content, control multimedia, animate images.',
-    Questions: "/static/Questionss/cards/contemplative-reptile.jpg",
-    User: 90,
-    Tech: "Another description about lizards.",
-  },
-  {
-    communityName: "Node JS",
-    description: 'Node. js is ideal for building fast and scalable web servers that handle numerous simultaneous connections.',
-    Questions: "/static/Questionss/cards/contemplative-reptile.jpg",
-    User: 80,
-    Tech: "Another description about lizards.",
-  },
-];
-
 export default function Communities() {
   const [value, setValue] = React.useState(2);
   const navigate = useNavigate();
+  const [getUrl, setGetUrl] = React.useState("/communities");
+  const [community, setCommunity] = React.useState([]);
+  const getHook = useGet(getUrl);
 
-  const handleCardClick = () => {
+  useEffect(() => {
+    if (getHook.data !== null) {
+      setCommunity(getHook.data);
+    }
+  }, [getHook.data]);
+
+  const handleCardClick = (communityId) => {
+    // navigate(`/community-details/${communityId}`);
+
     navigate('/community-details');
   };
 
@@ -77,7 +58,7 @@ export default function Communities() {
           <InputBase
             sx={{ ml: 1, flex: 1 }}
             placeholder="Search for Community Name"
-            inputProps={{ 'aria-label': 'search google maps' }}
+            inputProps={{ 'aria-label': 'search community' }}
           />
           <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
             <SearchIcon />
@@ -86,25 +67,25 @@ export default function Communities() {
       </Grid>
       <br />
       <Grid container spacing={2}>
-        {cardData.map((card, index) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
-            <UserCard onClick={handleCardClick}>
+        {community.map((card) => (
+          <Grid item xs={12} sm={6} md={4} lg={3} key={card.value}>
+            <UserCard onClick={() => handleCardClick(card.value)}>
               <CardContent sx={{ flex: 1 }}>
                 <Typography gutterBottom variant="h5" component="div">
-                  {card.communityName}
+                  {card.label}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {card.description}
                 </Typography>
                 <br />
                 <Typography variant="body2" color="text.secondary">
-                  <b>Tech:</b> {card.Tech}
+                  <b>Tech:</b> {card.label}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  <b>User:</b> {card.User}
+                  <b>Users:</b> {card.usersCount}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  <b>Questions:</b> {card.Questions.length}
+                  <b>Questions:</b> {card.totalQuestionsCount}
                 </Typography>
               </CardContent>
               <CardActions sx={{ justifyContent: 'flex-end' }}>
@@ -118,7 +99,6 @@ export default function Communities() {
               </CardActions>
             </UserCard>
           </Grid>
-          
         ))}
       </Grid>
       <Fab
