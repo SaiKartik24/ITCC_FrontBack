@@ -5,23 +5,25 @@ import { Box, Button, TextField, Chip, Paper, List, ListItem, InputAdornment } f
 import useGet from '../../ServiceHelper/Api/useGet';
 import usePost from "../../ServiceHelper/Api/usePost";
 import { useForm } from "react-hook-form";
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';  // Remove the curly braces, it's a default export
 import { AuthContext } from '../../ServiceHelper/AuthContext';
 import DOMPurify from 'dompurify';
+import useAxiosInstance from '../../ServiceHelper/Services';
 
 export default function Post() {
   const { token } = useContext(AuthContext);
+  const axiosInstance = useAxiosInstance(); // Initialize axiosInstance
   const [tags, setTags] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [getUrl, setGetUrl] = useState("/lookup/getCommunity");
   const getHook = useGet(getUrl);
   const [community, setCommunity] = useState([]);
-  const { register, handleSubmit, setValue } = useForm({ mode: "onTouched"});
+  const { register, handleSubmit, setValue } = useForm({ mode: "onTouched" });
   const [postData, setPostData] = useState(null);
   const [postUrl, setPostUrl] = useState("");
   const [triggerPost, setTriggerPost] = useState(false);
-  const { response, loading, error } = usePost(postUrl, postData, triggerPost);
+  const {response,loading,error} = usePost(postUrl, postData, triggerPost);
   const [userToken, setUserToken] = useState({});
 
 
@@ -47,15 +49,19 @@ export default function Post() {
     "list", "color", "bullet", "indent",
     "link", "image", "align", "size",
   ];
-  const stripHtmlTags = (html) => {
-    return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] });
-  };
   // Fetching community data
   useEffect(() => {
     if (getHook.data !== null) {
       setCommunity(getHook.data);
     }
-  }, [getHook.data]);
+    if (response) {
+      console.log('Post response:', response);
+    
+    }
+    if (error) {
+      console.error('Post error:', error);
+    }
+  }, [getHook.data,response, error]);
 
   // Decoding token to get user information
   useEffect(() => {
@@ -72,36 +78,35 @@ export default function Post() {
     }
   }, [token, setValue]);
 
-  //post
-  const onSubmit = async (data) => {
+  
+
+  const onSubmit =  (data) => {
     try {
-      let tagedValue = 0;
-      community.forEach((x) => {
-        if (tags.includes(x.tag)) {
-          tagedValue += Number(x.value);
+      let taggedValue = 0;
+      community.forEach((item) => {
+        if (tags.includes(item.tag)) {
+          taggedValue += Number(item.value);
         }
       });
-      const response = await fetch('http://172.17.15.253:3002/questions/addQuestion', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      if (!triggerPost) {
+        setTriggerPost(true); 
+        setPostData({
           question: data.question,
           description: data.description,
-          community: tagedValue,
+          community: taggedValue,
           userId: userToken.userId,
-        })
-      });
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+        });
+        setPostUrl("/questions/addQuestion");
       }
-      const result = await response.json();
+    
+      console.log(response,"115")
     } catch (error) {
-      console.error('Submit failed:', error);
+      console.error("Error during submission:", error);
     }
-  }
+  };
+  
+
+
   // Handle input change for tags
   const handleInputChange = (event) => {
     const value = event.target.value;

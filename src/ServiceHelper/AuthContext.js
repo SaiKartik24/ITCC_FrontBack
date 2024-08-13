@@ -1,19 +1,19 @@
 import React, { createContext, useState } from 'react';
 
-// Create the context
 const AuthContext = createContext();
 
-// Create a provider component
 const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(null);
-
+  const [token, setToken] = useState(() => {
+    return localStorage.getItem('token') || null;
+  });
   const login = (newToken) => {
     setToken(newToken);
+    localStorage.setItem('token', newToken);
     console.log(newToken);
   };
-
   const logout = () => {
     setToken(null);
+    localStorage.removeItem('token');
   };
 
   return (
