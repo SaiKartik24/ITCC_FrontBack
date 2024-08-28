@@ -42,9 +42,7 @@ export default function Communities() {
   }, [getHook.data]);
 
   const handleCardClick = (communityId) => {
-    // navigate(`/community-details/${communityId}`);
-
-    navigate('/community-details');
+    navigate('/community-details', { state: communityId });
   };
 
   return (

@@ -2,10 +2,25 @@ import * as React from 'react';
 import { Box, Avatar, Typography, Card, CardContent, List, ListItem, ListItemAvatar, ListItemText, Badge, Link, Tab, Tabs } from '@mui/material';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
+import { useLocation } from 'react-router-dom';
+import { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../../ServiceHelper/AuthContext';
+import { format } from 'date-fns';
 
 export default function UserDetails() {
-  const [tabValue, setTabValue] = React.useState('stats');
-  const [postsTabValue, setPostsTabValue] = React.useState('questions');
+  const { token } = useContext(AuthContext);
+  const [tabValue, setTabValue] = useState('stats');
+  const [postsTabValue, setPostsTabValue] = useState('questions');
+  const [communities, setCommunities] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState([]);
+  const [articles, setArticles] = useState([]);
+
+  const location = useLocation();
+  const { user } = location.state || {};
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -15,32 +30,126 @@ export default function UserDetails() {
     setPostsTabValue(newValue);
   };
 
-  const questions = [
-    { votes: 135, title: "Windows XP or later Windows: How can I run a batch file in the background with no window displayed?", date: "Nov 18, 2008" },
-    { votes: 77, title: "Conditional logging with minimal cyclomatic complexity", date: "Sep 19, 2008" },
-    { votes: 13, title: "Windows XP or later Windows: How can I run a batch file in the background with no window displayed?", date: "Nov 18, 2008" },
-    { votes: 7, title: "Conditional logging with minimal cyclomatic complexity", date: "Sep 19, 2008" },
-  ];
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const communityResponse = await fetch('http://172.17.15.253:3002/lookup/getCommunity', {
+          method: 'GET',
+          headers: {
+            observe: 'response',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
 
-  const answers = [
-    { votes: 45, title: "Use the start command in a batch file to run a script in the background.", date: "Nov 20, 2008" },
-    { votes: 30, title: "Conditional logging can be implemented using a logging framework with support for filters.", date: "Sep 21, 2008" },
-    { votes: 4, title: "Use the start command in a batch file to run a script in the background.", date: "Nov 20, 2008" },
-    { votes: 3, title: "Conditional logging can be implemented using a logging framework with support for filters.", date: "Sep 21, 2008" },
-  ];
+        if (!communityResponse.ok) {
+          throw new Error('API request failed');
+        }
 
-  const articles = [
-    { name: "Project Plan", path: "", date: "Jul 15, 2023" },
-    { name: "Design Document", path: "", date: "Aug 1, 2023" },
-  ];
+        const communityData = await communityResponse.json();
+        const communityMap = communityData.reduce((acc, community) => {
+          acc[community.value] = community.label;
+          return acc;
+        }, {});
+
+        setCommunities(communityMap);
+
+      } catch (error) {
+        console.error('API error:', error);
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [token]);
+
+  useEffect(() => {
+    async function fetchPostsData() {
+      try {
+        if (tabValue === 'posts') {
+          if (postsTabValue === 'questions') {
+            const response = await fetch(`http://172.17.15.253:3002/questions/getQuestionByUserId/${user._id}`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to fetch questions');
+            }
+
+            const data = await response.json();
+            setQuestions(data.result);
+          }
+
+          if (postsTabValue === 'answers') {
+            const response = await fetch(`http://172.17.15.253:3002/answers/getAnswersByUserId/${user._id}`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              },
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to fetch answers');
+            }
+
+            const data = await response.json();
+            setAnswers(data.result);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+      }
+    }
+
+    fetchPostsData();
+
+  }, [postsTabValue, tabValue, user._id, token]);
+
+  useEffect(() => {
+    async function fetchArticles() {
+      try {
+        if (tabValue === 'articles') {
+          const response = await fetch(`http://172.17.15.253:3002/articles/getArticles/${user._id}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch articles');
+          }
+
+          const data = await response.json();
+          setArticles(data.article);
+        }
+      } catch (error) {
+        console.error('Error fetching articles:', error);
+      }
+    }
+
+    fetchArticles();
+
+  }, [tabValue, user._id, token]);
+
+  if (loading) return <Typography>Loading...</Typography>;
+  if (error) return <Typography>Error loading data</Typography>;
 
   return (
     <Box sx={{ width: '100%' }}>
       <Card sx={{ display: 'flex', mb: 2 }}>
-        <Avatar alt="User Avatar" src="https://talk.miraclesoft.com/avatar/snistala" sx={{ width: 100, height: 100, m: 2 }} />
+        <Avatar alt="User Avatar" src={user.profilePicture} sx={{ width: 100, height: 100, m: 2 }} />
         <CardContent>
-          <Typography variant="h5">Karthik Nistala</Typography>
-          <Typography variant="body2" color="textSecondary">Member for 15 years, 10 months</Typography>
+          <Typography variant="h5">{user.firstName} {user.lastName}</Typography>
+          <Typography variant="body2" color="textSecondary">Joined on {format(new Date(user.createdDate), 'MMMM dd, yyyy')}</Typography>
+          <Typography variant="body2" color="textSecondary">{user.email}</Typography>
+          <Typography variant="body2" color="text.secondary" style={{ color: '#0D416B' }}>
+            {user.community.map(id => communities[id] || 'Unknown Community').join(', ')}
+          </Typography>
         </CardContent>
       </Card>
       <Tabs value={tabValue} onChange={handleTabChange} aria-label="user profile tabs">
@@ -50,9 +159,9 @@ export default function UserDetails() {
       </Tabs>
       {tabValue === 'stats' && (
         <Box p={2}>
-          <Typography>Points: 373</Typography>
-          <Typography>Questions: 16</Typography>
-          <Typography>Answers: 29</Typography>
+          <Typography>Points: {user.points}</Typography>
+          <Typography>Questions: {questions.length}</Typography>
+          <Typography>Answers: {answers.length}</Typography>
         </Box>
       )}
       {tabValue === 'posts' && (
@@ -66,11 +175,9 @@ export default function UserDetails() {
               {questions.map((question, index) => (
                 <ListItem key={index}>
                   <ListItemAvatar>
-                    <Badge badgeContent={question.votes} color="primary">
-                      <QuestionAnswerIcon />
-                    </Badge>
+                    <QuestionMarkIcon />
                   </ListItemAvatar>
-                  <ListItemText primary={question.title} secondary={question.date} />
+                  <ListItemText primary={question.question} secondary={format(new Date(question.createdDate), 'yyyy-MM-dd kk:mm:ss')} />
                 </ListItem>
               ))}
             </List>
@@ -80,19 +187,15 @@ export default function UserDetails() {
               {answers.map((answer, index) => (
                 <ListItem key={index}>
                   <ListItemAvatar>
-                    <Badge badgeContent={answer.votes} color="primary">
-                      <QuestionAnswerIcon />
-                    </Badge>
+                    <QuestionAnswerIcon />
                   </ListItemAvatar>
-                  <ListItemText primary={answer.title} secondary={answer.date} />
+                  <ListItemText primary={answer.answer} secondary={format(new Date(answer.createdDate), 'yyyy-MM-dd kk:mm:ss')} />
                 </ListItem>
               ))}
             </List>
           )}
         </Box>
       )}
-
-     {/* Articles tab  */}
       {tabValue === 'articles' && (
         <Box p={2}>
           <List>
@@ -101,7 +204,7 @@ export default function UserDetails() {
                 <ListItemAvatar>
                   <InsertDriveFileIcon />
                 </ListItemAvatar>
-                <ListItemText primary={<Link href={article.path} target="_blank">{article.name}</Link>} secondary={article.date} />
+                <ListItemText primary={<Link href={article.title} target="_blank">{article.title}</Link>} secondary={format(new Date(article.createdDate), 'yyyy-MM-dd kk:mm:ss')} />
               </ListItem>
             ))}
           </List>

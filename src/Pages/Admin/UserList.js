@@ -10,7 +10,6 @@ import { IconButton, InputBase, Paper, Fab } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import { AuthContext } from '../../ServiceHelper/AuthContext';
-import usePost from '../../ServiceHelper/Api/usePost';
 
 const UserCard = styled(Card)(({ theme }) => ({
   borderRadius: 5,
@@ -70,7 +69,7 @@ export default function UserList() {
         }
         const communityData = await communityResponse.json();
         const communityMap = communityData.reduce((acc, community) => {
-          acc[community.value] = community.label; // Map ID to community name
+          acc[community.value] = community.label; 
           return acc;
         }, {});
         setCommunities(communityMap);
@@ -86,8 +85,9 @@ export default function UserList() {
     fetchData();
   }, [token]);
 
-  const handleCardClick = () => {
-    navigate('/users-details');
+  const handleCardClick = (user) => {
+    navigate('/users-details', { state: { user } });
+    console.log("navigate to user details");
   };
 
   const handleFabClick = () => {
@@ -119,7 +119,7 @@ export default function UserList() {
       <Grid container spacing={2}>
         {users.map((user, index) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
-            <UserCard onClick={handleCardClick}>
+            <UserCard  onClick={() => handleCardClick(user)}>
               <CardContent>
                 <Grid container spacing={2}>
                   <Grid item xs={4}>
@@ -131,9 +131,6 @@ export default function UserList() {
                   </Grid>
                   <Grid item xs={8}>
                     <TruncatedText variant="h6">{user.firstName} {user.lastName}</TruncatedText>
-                    {/* <TruncatedText variant="body2" color="text.secondary">
-                      {user.email}
-                    </TruncatedText> */}
                     <TruncatedText variant="body2" color="text.secondary">
                       {user.community.map(id => communities[id] || 'Unknown Community').join(', ')}
                     </TruncatedText>
@@ -143,17 +140,7 @@ export default function UserList() {
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       <strong>Answers:</strong> 
-{/* {card.solution} */}
                      </Typography>
-                    {/* <Typography variant="body2" color="text.secondary">
-                      <strong>Points:</strong> {user.points}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      <strong>Status:</strong> {user.status === "1" ? 'Active' : 'Inactive'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      <strong>Role:</strong> {user.userRole}
-                    </Typography> */}
                   </Grid>
                 </Grid>
               </CardContent>
@@ -165,8 +152,7 @@ export default function UserList() {
         color="primary"
         aria-label="add"
         sx={{ position: 'fixed', bottom: 16, right: 16 }}
-        onClick={handleFabClick}
-      >
+        onClick={handleFabClick}>
         <AddIcon />
       </Fab>
     </>

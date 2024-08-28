@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Registration from './Registration';
 import usePost from '../../ServiceHelper/Api/usePost';
 import { AuthContext } from '../../ServiceHelper/AuthContext';
+import { jwtDecode } from 'jwt-decode';
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -35,7 +36,15 @@ const Login = () => {
   useEffect(() => {
     if (response) {
       login(response.token);
-      navigate('/dashboard');
+      const userRole = jwtDecode(response.token).userRole;
+
+      if (userRole === 'admin') {
+        navigate('/admin-dashboard'); 
+      } else if (userRole === 'user') {
+        navigate('/user-dashboard'); 
+      } else {
+        console.error('Unknown user role:', userRole);
+      }
     }
   }, [response, navigate]);
 
@@ -96,11 +105,11 @@ const Login = () => {
                     />
                   )}
                 />
-                {error && (
+                {/* {error && (
                   <Typography color="error" align="left" style={{ marginBottom: '16px' }}>
                     Login failed. Please check your email and password.
                   </Typography>
-                )}
+                )} */}
 
                 <Grid container alignItems="center" style={{ marginTop: '16px', justifyContent: 'space-between', marginBottom: '21px' }}>
                   <Grid item>
