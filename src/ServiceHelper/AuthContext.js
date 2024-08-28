@@ -1,28 +1,19 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState } from 'react';
 
-// Create the context
 const AuthContext = createContext();
-// Create a provider component
+
 const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => localStorage.getItem('token'));
-
-  useEffect(() => {
-    localStorage.setItem('token', token);
-  }, [token]);
-
+  const [token, setToken] = useState(() => {
+    return localStorage.getItem('token') || null;
+  });
   const login = (newToken) => {
-    if (typeof newToken === 'string') {
-      setToken(newToken);
-      console.log('Token set:', newToken);
-    } else {
-      console.error('Invalid token format');
-    }
+    setToken(newToken);
+    localStorage.setItem('token', newToken);
+    console.log(newToken);
   };
-
   const logout = () => {
     setToken(null);
     localStorage.removeItem('token');
-    console.log('Logged out');
   };
 
   return (

@@ -234,15 +234,6 @@ export default function Dashboard() {
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton onClick={() => navigate('/PostQuestions')}>
-              <ListItemIcon>
-                <GroupIcon />
-              </ListItemIcon>
-              <ListItemText primary="Questions" />
-            </ListItemButton>
-          </ListItem>
-
-          <ListItem disablePadding>
             <ListItemButton onClick={() => navigate('/user-post')}>
               <ListItemIcon>
                 <GroupIcon />
