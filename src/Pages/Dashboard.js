@@ -218,7 +218,7 @@ export default function Dashboard() {
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton onClick={() => navigate('/users')}>
+            <ListItemButton onClick={() => navigate('/admin-community')}>
               <ListItemIcon>
                 <GroupIcon />
               </ListItemIcon>
@@ -226,11 +226,19 @@ export default function Dashboard() {
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton onClick={() => navigate('/admin-community')}>
+            <ListItemButton onClick={() => navigate('/articles')}>
               <ListItemIcon>
                 <GroupIcon />
               </ListItemIcon>
               <ListItemText primary="Articles" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => navigate('/PostQuestions')}>
+              <ListItemIcon>
+                <GroupIcon />
+              </ListItemIcon>
+              <ListItemText primary="Questions" />
             </ListItemButton>
           </ListItem>
 

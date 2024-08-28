@@ -1,67 +1,27 @@
 import React,{useState} from 'react';
 import {
-    Box, Tabs, Tab, Typography, Avatar, Grid, IconButton, Menu, MenuItem, ListItem, ListItemText, List,
-    Badge, Fab, Button, Paper, InputBase, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField
+    Box, Tabs, Tab, Typography, Avatar, Grid, IconButton, ListItem, ListItemText, List,
+    Badge, Fab, Button, Paper, InputBase, Dialog, DialogActions, DialogContent, DialogTitle, TextField
 } from '@mui/material';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { ListItemAvatar } from '@material-ui/core';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import { styled } from '@mui/system';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import ContactSupportIcon from '@mui/icons-material/ContactSupport';
-
-
-const users = [
-    { name: 'Karthik Nistala', email: 'Karthike@gmail.com', profilePicture: '/path/to/profile-pic1.jpg' },
-    { name: 'Vani Pidudgu', email: 'Vani@gmail.com', profilePicture: '/path/to/profile-pic2.jpg' },
-    { name: 'Sambhavi Prathi', email: 'Sambhavi@gmail.com', profilePicture: '/path/to/profile-pic1.jpg' },
-    { name: 'Karthik Nistala', email: 'Karthike@gmail.com', profilePicture: '/path/to/profile-pic1.jpg' },
-    { name: 'Vani Pidudgu', email: 'Vani@gmail.com', profilePicture: '/path/to/profile-pic2.jpg' },
-    { name: 'Sambhavi Prathi', email: 'Sambhavi@gmail.com', profilePicture: '/path/to/profile-pic1.jpg' },
-    { name: 'Karthik Nistala', email: 'Karthike@gmail.com', profilePicture: '/path/to/profile-pic1.jpg' },
-    { name: 'Vani Pidudgu', email: 'Vani@gmail.com', profilePicture: '/path/to/profile-pic2.jpg' },
-];
+import PostQuestions from './PostQuestions';
 
 const CustomDialog = styled(Dialog)({
     '& .MuiPaper-root': {
         borderRadius: 20,
         padding: '16px',
-        // background: 'linear-gradient(to bottom, #1d50a1, #799fbf)',
-        // color: '#fff',
         minWidth: 300,
-        maxWidth: 400, // Optional: Adjust the max-width for better appearance
+        maxWidth: 400, 
     },
 });
-
-const AvatarContainer = styled(Avatar)({
-    margin: '0 auto 16px auto',
-    width: 60,
-    height: 60,
-    backgroundColor: '#fff',
-    color: '#1976d2',
-});
-
 const CustomTextField = styled(TextField)({
-    '& .MuiOutlinedInput-root': {
-        '& fieldset': {
-            // borderColor: '#fff',
-        },
-        '&:hover fieldset': {
-            // borderColor: '#fff',
-        },
-        '&.Mui-focused fieldset': {
-            // borderColor: '#fff',
-        },
-    },
-    '& .MuiInputBase-input': {
-        // color: '#fff',
-    },
-    '& .MuiInputLabel-root': {
-        // color: '#fff',
-    },
+   
 });
 
 const CustomButton = styled(Button)({
@@ -74,21 +34,15 @@ const CustomButton = styled(Button)({
 
 export default function Users() {
     const [value, setValue] = useState(0);
-    const [anchorEl, setAnchorEl] = useState(null);
+    const [signupOpen, setSignupOpen] = useState(false);
     const [open, setOpen] = useState(false);
-
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
-
-    const handleClickOpen = () => {
-        setOpen(true);
-    };
-
-    const handleClose = () => {
+    const handleSignupClose = () => {
         setOpen(false);
     };
-
+    const handleSignupOpen = () => setSignupOpen(true);
     const questions = [
         { votes: 135, title: "Can Browsers read a JSX File? What is Babel?", date: "Nov 18, 2008" },
         { votes: 77, title: "How do React apps load and display the components in the browser?", date: "Sep 19, 2008" },
@@ -116,8 +70,6 @@ export default function Users() {
         },
 
     ];
-
-
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
@@ -217,7 +169,7 @@ export default function Users() {
             </Box>
             <CustomDialog
                 open={open}
-                onClose={handleClose}
+                onClose={handleSignupClose}
                 aria-labelledby="ask-question-dialog-title"
                 aria-describedby="ask-question-dialog-description"
             >
@@ -225,15 +177,12 @@ export default function Users() {
                     <IconButton
                         edge="start"
                         color="inherit"
-                        onClick={handleClose}
+                        onClick={handleSignupClose}
                         aria-label="close"
                     >
                         <CloseIcon />
                     </IconButton>
                 </DialogActions>
-                {/* <AvatarContainer>
-                    <QuestionAnswerIcon />
-                </AvatarContainer> */}
                 <DialogTitle>Ask your Query ?</DialogTitle>
                 <DialogContent>
                     <CustomTextField
@@ -247,14 +196,15 @@ export default function Users() {
                     />
                 </DialogContent>
                 <DialogActions>
-                    <CustomButton onClick={handleClose}>Submit</CustomButton>
+                    <CustomButton onClick={handleSignupClose}>Submit</CustomButton>
                 </DialogActions>
             </CustomDialog>
+            <PostQuestions signupOpen={signupOpen} handleSignupClose={handleSignupClose} />
             <Fab
                 color="primary"
                 aria-label="add"
-                sx={{ position: 'fixed', bottom: 30, right: 30 }} // Adjusted position for visibility
-                onClick={handleClickOpen}
+                sx={{ position: 'fixed', bottom: 30, right: 30 }} 
+                onClick={handleSignupOpen}
             >
                 <AddIcon />
             </Fab>
