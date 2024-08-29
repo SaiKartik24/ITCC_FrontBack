@@ -8,7 +8,6 @@ import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import { styled } from '@mui/system';
-import ContactSupportIcon from '@mui/icons-material/ContactSupport';
 import PostQuestions from './PostQuestions';
 import { jwtDecode } from 'jwt-decode';
 
@@ -20,9 +19,7 @@ const CustomDialog = styled(Dialog)({
         maxWidth: 400,
     },
 });
-
 const CustomTextField = styled(TextField)({});
-
 const CustomButton = styled(Button)({
     backgroundColor: '#1976d2',
     color: '#fff',
@@ -35,15 +32,13 @@ export default function Users() {
     const [value, setValue] = useState(0);
     const [signupOpen, setSignupOpen] = useState(false);
     const [open, setOpen] = useState(false);
-    const [questions, setQuestions] = useState([]);
     const [answers, setAnswers] = useState([]);
-    const [posts, setPosts] = useState([]);
-    const [responseData, setResponseData] = useState([]); 
-    const [answerResponseData, setanswerResponseData] = useState([]); 
+    const [responseData, setResponseData] = useState([]);
+    const [answerResponseData, setanswerResponseData] = useState([]);
+    const [postResponseData, setpostResponseData] = useState([]);
     const handleChange = (event, newValue) => { setValue(newValue) };
     const handleSignupClose = () => { setOpen(false) };
     const handleSignupOpen = () => setSignupOpen(true);
-
     useEffect(() => {
         const token = localStorage.getItem('token');
         const decoded = jwtDecode(token);
@@ -60,14 +55,13 @@ export default function Users() {
                     throw new Error(`Error: ${response.status}`);
                 }
                 const data = await response.json();
-                setResponseData(data);
+                setResponseData(data.questions);
             } catch (error) {
                 console.error('Error fetching question data:', error);
             }
         };
         fetchData();
     }, []);
-
     useEffect(() => {
         const token = localStorage.getItem('token');
         const decoded = jwtDecode(token);
@@ -91,8 +85,29 @@ export default function Users() {
         };
         fetchData();
     }, []);
-
-
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const fetchData = async () => {
+            try {
+                const response = await fetch(` http://172.17.15.253:3002/questions`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log(data);
+                setpostResponseData(data.questions.data)
+            } catch (error) {
+                console.error('Error fetching question data:', error);
+            }
+        };
+        fetchData();
+    }, []);
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
@@ -151,40 +166,19 @@ export default function Users() {
                 )}
                 {value === 2 && (
                     <Box p={3}>
-                        <b>{posts?.length || 0} Posts</b>
-                        {Array.isArray(posts) && posts.length > 0 ? (
-                            <List>
-                                {posts.map((post, index) => (
-                                    <React.Fragment key={index}>
-                                        <ListItem alignItems="flex-start">
-                                            <ListItemAvatar>
-                                                <Badge badgeContent={post.votes} color="primary">
-                                                    <ContactSupportIcon fontSize="large" />
-                                                </Badge>
-                                            </ListItemAvatar>
-                                            <ListItemText
-                                                primary={<Typography variant="body1" fontWeight="bold">{post.ques}</Typography>}
-                                                secondary={post.date}
-                                            />
-                                        </ListItem>
-                                        {post.answers && (
-                                            <List component="div" disablePadding>
-                                                {post.answers.map((answer, idx) => (
-                                                    <ListItem key={idx} style={{ paddingLeft: 40 }}>
-                                                        <ListItemAvatar>
-                                                            <QuestionAnswerIcon />
-                                                        </ListItemAvatar>
-                                                        <ListItemText primary={answer.text} secondary={answer.date} />
-                                                    </ListItem>
-                                                ))}
-                                            </List>
-                                        )}
-                                    </React.Fragment>
-                                ))}
-                            </List>
-                        ) : (
-                            <Typography>No posts available.</Typography>
-                        )}
+                        <b>{answers.length} Posts</b>
+                        <List>
+                            {postResponseData.map((ques, index) => (
+                                <ListItem key={index}>
+                                    <ListItemAvatar>
+                                        <Badge color="primary">
+                                            <QuestionAnswerIcon />
+                                        </Badge>
+                                    </ListItemAvatar>
+                                    <ListItemText primary={ques.question} secondary={ques.createdDate} />
+                                </ListItem>
+                            ))}
+                        </List>
                     </Box>
                 )}
             </Box>
@@ -192,15 +186,13 @@ export default function Users() {
                 open={open}
                 onClose={handleSignupClose}
                 aria-labelledby="ask-question-dialog-title"
-                aria-describedby="ask-question-dialog-description"
-            >
+                aria-describedby="ask-question-dialog-description">
                 <DialogActions>
                     <IconButton
                         edge="start"
                         color="inherit"
                         onClick={handleSignupClose}
-                        aria-label="close"
-                    >
+                        aria-label="close">
                         <CloseIcon />
                     </IconButton>
                 </DialogActions>
