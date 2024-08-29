@@ -65,20 +65,6 @@ export default function PostQuestions(props) {
     }
   }, [getHook.data, response, error]);
 
-  useEffect(() => {
-    if (typeof token === 'string') {
-      try {
-        const decodedToken = jwtDecode(token);
-        setUserToken(decodedToken);
-        setValue("userId", decodedToken.userId);
-      } catch (error) {
-        console.error('Error decoding token:', error);
-      }
-    } else {
-      console.error('Token must be a string');
-    }
-  }, [token, setValue]);
-
   const onSubmit = (data) => {
     try {
       let taggedValue = 0;
@@ -87,20 +73,14 @@ export default function PostQuestions(props) {
           taggedValue += Number(item.value);
         }
       });
-
       setPostData({
         question: data.question,
         description: data.description,
         community: taggedValue,
         userId: userToken.userId,
       });
-
       setPostUrl("/questions/addQuestion");
       setTriggerPost(true);
-
-    
-      props.handleClose();
-
     } catch (error) {
       console.error("Error during submission:", error);
     }
@@ -206,7 +186,7 @@ export default function PostQuestions(props) {
               )}
             </Box>
             <Box mt={3} display="flex" justifyContent="flex-start">
-              <Button type="submit" variant="contained" onClose={handleClose}>Post your Answer</Button>
+              <Button type="submit" variant="contained" onClose={handleClose}>Post your Question</Button>
             </Box>
           </Box>
         </form>

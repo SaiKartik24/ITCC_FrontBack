@@ -69,7 +69,6 @@ export default function Articles() {
       ],
     ],
   });
-
   const [formats, setFormats] = useState([
     "header",
     "height",

@@ -99,6 +99,7 @@ export default function Dashboard() {
       console.error('Token must be a string');
     }
   },[token])
+  
   const logoutAccount = () => {
     navigate('/');
   };
@@ -215,14 +216,6 @@ export default function Dashboard() {
                 <DashboardIcon />
               </ListItemIcon>
               <ListItemText primary="Home" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => navigate('/admin-community')}>
-              <ListItemIcon>
-                <GroupIcon />
-              </ListItemIcon>
-              <ListItemText primary="Community" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
