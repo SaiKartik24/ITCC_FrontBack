@@ -1,29 +1,101 @@
 import React, { useState, useEffect } from "react";
 import ReactQuill from "react-quill";
 import "quill/dist/quill.snow.css";
-import { TextField, Button, Grid, Radio, RadioGroup, FormControlLabel, FormControl, Autocomplete } from "@mui/material";
-import useGet from "../../ServiceHelper/Api/useGet";
-import usePost from "../../ServiceHelper/Api/usePost";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Autocomplete from "@mui/material/Autocomplete";
+import Grid from "@mui/material/Grid";
+import Radio from "@mui/material/Radio";
+import RadioGroup from "@mui/material/RadioGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormControl from "@mui/material/FormControl";
 
-// Define modules and formats once
-const quillModules = {
-  toolbar: [
-    [{ size: ["small", false, "large", "huge"] }],
-    ["bold", "italic", "underline", "strike", "blockquote"],
-    [{ list: "ordered" }, { list: "bullet" }],
-    ["link", "image"],
-    [{ indent: "-1" }, { indent: "+1" }, { align: [] }],
-    [{ color: ["#000000", "#e60000", "#ff9900", "#ffff00", "#008a00", "#0066cc", "#9933ff", "#ffffff"] }]
-  ]
-};
-
-const quillFormats = [
-  "header", "height", "bold", "italic", "underline", "strike", "blockquote",
-  "list", "color", "bullet", "indent", "link", "image", "align", "size"
-];
 
 export default function Articles() {
-  const { data: communityData, loading: communityLoading, error: communityError } = useGet('/communities');
+  const [modules, setModules] = useState({
+    toolbar: [
+      [{ size: ["small", false, "large", "huge"] }],
+      ["bold", "italic", "underline", "strike", "blockquote"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link", "image"],
+      [
+        { list: "ordered" },
+        { list: "bullet" },
+        { indent: "-1" },
+        { indent: "+1" },
+        { align: [] },
+      ],
+      [
+        {
+          color: [
+            "#000000",
+            "#e60000",
+            "#ff9900",
+            "#ffff00",
+            "#008a00",
+            "#0066cc",
+            "#9933ff",
+            "#ffffff",
+            "#facccc",
+            "#ffebcc",
+            "#ffffcc",
+            "#cce8cc",
+            "#cce0f5",
+            "#ebd6ff",
+            "#bbbbbb",
+            "#f06666",
+            "#ffc266",
+            "#ffff66",
+            "#66b966",
+            "#66a3e0",
+            "#c285ff",
+            "#888888",
+            "#a10000",
+            "#b26b00",
+            "#b2b200",
+            "#006100",
+            "#0047b2",
+            "#6b24b2",
+            "#444444",
+            "#5c0000",
+            "#663d00",
+            "#666600",
+            "#003700",
+            "#002966",
+            "#3d1466",
+            "custom-color",
+          ],
+        },
+      ],
+    ],
+  });
+
+  const [formats, setFormats] = useState([
+    "header",
+    "height",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "blockquote",
+    "list",
+    "color",
+    "bullet",
+    "indent",
+    "link",
+    "image",
+    "align",
+    "size",
+  ]);
+
+  const [communities, setCommunities] = useState([
+    { tagName: "#reactjs", tId: 1 },
+    { tagName: "#angular", tId: 2 },
+    { tagName: "#nodejs", tId: 3 },
+    { tagName: "#Reactjs", tId: 4 },
+    { tagName: "#javascript", tId: 5 },
+  ]);
+
   const [selectedTags, setSelectedTags] = useState([]);
   const [access, setAccess] = useState("public");
   const [postArticle, setPostArticle] = useState({

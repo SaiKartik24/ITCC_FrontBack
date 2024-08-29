@@ -105,12 +105,6 @@ const Login = () => {
                     />
                   )}
                 />
-                {/* {error && (
-                  <Typography color="error" align="left" style={{ marginBottom: '16px' }}>
-                    Login failed. Please check your email and password.
-                  </Typography>
-                )} */}
-
                 <Grid container alignItems="center" style={{ marginTop: '16px', justifyContent: 'space-between', marginBottom: '21px' }}>
                   <Grid item>
                     <Link style={{ color: 'blue', cursor: 'pointer' }} onClick={handleClickOpen}>
@@ -124,7 +118,6 @@ const Login = () => {
                   </Grid>
                 </Grid>
               </Grid>
-
               <Grid item xs={6} style={{
                 backgroundColor: '#1565c0', color: 'white', padding: '40px',
                 display: 'flex', flexDirection: 'column', alignItems: 'flex-end', clipPath: 'polygon(100% 0, 0 0%, 100% 100%)'

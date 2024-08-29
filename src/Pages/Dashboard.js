@@ -99,6 +99,7 @@ export default function Dashboard() {
       console.error('Token must be a string');
     }
   },[token])
+  
   const logoutAccount = () => {
     navigate('/');
   };
@@ -218,14 +219,6 @@ export default function Dashboard() {
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton onClick={() => navigate('/admin-community')}>
-              <ListItemIcon>
-                <GroupIcon />
-              </ListItemIcon>
-              <ListItemText primary="Community" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
             <ListItemButton onClick={() => navigate('/articles')}>
               <ListItemIcon>
                 <GroupIcon />
@@ -233,15 +226,6 @@ export default function Dashboard() {
               <ListItemText primary="Articles" />
             </ListItemButton>
           </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => navigate('/PostQuestions')}>
-              <ListItemIcon>
-                <GroupIcon />
-              </ListItemIcon>
-              <ListItemText primary="Questions" />
-            </ListItemButton>
-          </ListItem>
-
           <ListItem disablePadding>
             <ListItemButton onClick={() => navigate('/user-post')}>
               <ListItemIcon>

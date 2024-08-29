@@ -19,7 +19,6 @@ function Registration(props) {
   const [triggerPost, setTriggerPost] = useState(false);
   const { data: data1, loading: loading1, error: error1 } = usePost(postUrl, postData, triggerPost);
   const getHook = useGet(getUrl);
-
   const [selectedCommunity, setSelectedCommunity] = useState("");
   const [open, setOpen] = useState(false);
 
