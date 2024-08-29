@@ -36,9 +36,31 @@ export default function Communities() {
   const getHook = useGet(getUrl);
 
   useEffect(() => {
-    if (getHook.data !== null) {
-      setCommunity(getHook.data);
-    }
+    // if (getHook.data !== null) {
+    //   setCommunity(getHook.data);
+    // }
+
+
+
+
+    async function fetchData() {
+ 
+        // Fetch user data
+        const userResponse = await fetch('http://172.17.15.253:3002/communities', {
+          method: 'GET',
+          headers: {
+            observe: 'response',
+            'Content-Type': 'application/json',
+            // 'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!userResponse.ok) {
+          throw new Error('API request failed');
+        }
+        const communityData = await userResponse.json();
+        setCommunity(communityData);
+      }
+      fetchData()
   }, [getHook.data]);
 
   const handleCardClick = (communityId) => {

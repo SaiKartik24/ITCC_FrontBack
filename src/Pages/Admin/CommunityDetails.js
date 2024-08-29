@@ -8,15 +8,13 @@ import { AuthContext } from '../../ServiceHelper/AuthContext';
 import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 import { format } from 'date-fns';
 
-
 export default function CommunityDetails() {
   const { token } = useContext(AuthContext);
   const [value, setValue] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [communityUser, setCommunityUser] = useState([]);
-  const [questions, setQuestions] = useState([]);
   const [users, setUsers] = useState([]);
-  const [articles, setarticles] = useState([]);
+  const [questions, setQuestions] = useState([]);
+  const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -26,11 +24,26 @@ export default function CommunityDetails() {
   useEffect(() => {
     async function fetchPosts() {
       try {
+        setLoading(true);
+
+        let response;
+        let data;
+
         if (value === 0) {
-
-          setLoading(true);
-
-          const response = await fetch(`http://172.17.15.253:3002/community/getUsersByCommunity/${communityValue}`, {
+          response = await fetch(`http://172.17.15.253:3002/community/getUsersByCommunity/${communityValue}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+          });
+          if (!response.ok) {
+            throw new Error('Failed to fetch users');
+          }
+          data = await response.json();
+          setUsers(data.users || []);
+        } else if (value === 1) {
+          response = await fetch(`http://172.17.15.253:3002/community/getQuestionsByCommunity/${communityValue}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -40,16 +53,10 @@ export default function CommunityDetails() {
           if (!response.ok) {
             throw new Error('Failed to fetch questions');
           }
-          const data = await response.json();
-          setUsers(data.questions);
-          if(data.questions == []){
-            
-          }
-        }
-        else if (value === 1) {
-          setLoading(true);
-
-          const response = await fetch(`http://172.17.15.253:3002/community/getQuestionsByCommunity/${communityValue}`, {
+          data = await response.json();
+          setQuestions(data.questions || []); // Use fallback empty array
+        } else if (value === 2) {
+          response = await fetch(`http://172.17.15.253:3002/community/getArticlesByCommunity/${communityValue}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -57,29 +64,12 @@ export default function CommunityDetails() {
             },
           });
           if (!response.ok) {
-            throw new Error('Failed to fetch questions');
+            throw new Error('Failed to fetch articles');
           }
-          const data = await response.json();
-          setQuestions(data.questions);
+          data = await response.json();
+          setArticles(data.articles || []);
         }
-        else if (value === 2) {
-          setLoading(true);
-
-          const response = await fetch(`http://172.17.15.253:3002/community/getArticlesByCommunity/${communityValue}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-          });
-          if (!response.ok) {
-            throw new Error('Failed to fetch questions');
-          }
-          const data = await response.json();
-          setarticles(data.articles);
-        }
-      }
-      catch (error) {
+      } catch (error) {
         console.error('Error fetching posts:', error);
         setError(error.message);
       } finally {
@@ -88,7 +78,7 @@ export default function CommunityDetails() {
     }
     fetchPosts();
 
-  }, [value]); // Dependency on `value` to trigger on tab change
+  }, [value, communityValue, token]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -135,7 +125,7 @@ export default function CommunityDetails() {
                     <MenuItem onClick={handleClose}>Delete</MenuItem>
                   </Menu>
                   <Avatar src={user.profilePicture} sx={{ width: 56, height: 56, mb: 2 }} />
-                  <Typography variant="h6">{user.firstName}{user.firstName}</Typography>
+                  <Typography variant="h6">{user.firstName} {user.lastName}</Typography>
                   <Typography variant="body2">{user.email}</Typography>
                 </Box>
               </Grid>
@@ -153,11 +143,9 @@ export default function CommunityDetails() {
               {questions.map((question, index) => (
                 <ListItem key={index}>
                   <ListItemAvatar>
-                    {/* <Badge badgeContent={question.votes} color="primary"> */}
                     <QuestionMarkIcon />
-                    {/* </Badge> */}
                   </ListItemAvatar>
-                  <ListItemText primary={question.question} secondary={format(new Date(question.createdDate), 'yyyy-MM-dd kk:mm:ss')}/>
+                  <ListItemText primary={question.question} secondary={format(new Date(question.createdDate), 'yyyy-MM-dd kk:mm:ss')} />
                 </ListItem>
               ))}
             </List>
@@ -167,18 +155,15 @@ export default function CommunityDetails() {
 
       {value === 2 && (
         <Box p={3}>
-          {/* <Typography variant="h6">{loading ? 'Loading...' : `${questions.length} questions`}</Typography> */}
           {error && <Typography color="error">{error}</Typography>}
           {!loading && !error && (
             <List>
               {articles.map((article, index) => (
                 <ListItem key={index}>
                   <ListItemAvatar>
-                    {/* <Badge badgeContent={question.votes} color="primary"> */}
                     <InsertDriveFileIcon />
-                    {/* </Badge> */}
                   </ListItemAvatar>
-                  <ListItemText primary={article.title} secondary={format(new Date(article.createdDate), 'yyyy-MM-dd kk:mm:ss')}/>
+                  <ListItemText primary={article.title} secondary={format(new Date(article.createdDate), 'yyyy-MM-dd kk:mm:ss')} />
                 </ListItem>
               ))}
             </List>
