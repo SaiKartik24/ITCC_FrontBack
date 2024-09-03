@@ -10,6 +10,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { styled } from '@mui/system';
 import PostQuestions from './PostQuestions';
 import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
 
 const CustomDialog = styled(Dialog)({
     '& .MuiPaper-root': {
@@ -39,6 +40,7 @@ export default function Users() {
     const handleChange = (event, newValue) => { setValue(newValue) };
     const handleSignupClose = () => { setOpen(false) };
     const handleSignupOpen = () => setSignupOpen(true);
+    const navigate = useNavigate();
     useEffect(() => {
         const token = localStorage.getItem('token');
         const decoded = jwtDecode(token);
@@ -101,13 +103,20 @@ export default function Users() {
                 }
                 const data = await response.json();
                 console.log(data);
-                setpostResponseData(data.questions.data)
+                setpostResponseData(data.questions)
             } catch (error) {
                 console.error('Error fetching question data:', error);
             }
         };
         fetchData();
     }, []);
+
+    const publicQuestionClick = (ques) => {
+        navigate('/user-post', { state: { ques } });
+        console.log(ques,"navigate to user posts");
+      };
+
+
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
@@ -175,7 +184,7 @@ export default function Users() {
                                             <QuestionAnswerIcon />
                                         </Badge>
                                     </ListItemAvatar>
-                                    <ListItemText primary={ques.question} secondary={ques.createdDate} />
+                                    <ListItemText primary={ques.question} secondary={ques.createdDate}  onClick={() => publicQuestionClick(ques)}/>
                                 </ListItem>
                             ))}
                         </List>
