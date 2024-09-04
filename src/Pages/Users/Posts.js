@@ -8,6 +8,7 @@ import { AuthContext } from '../../ServiceHelper/AuthContext';
 import DOMPurify from 'dompurify';
 import { useLocation } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import ReactQuill from 'react-quill';
 
 const stripHtmlTags = (html) => {
     return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] });
@@ -26,10 +27,10 @@ export default function Posts() {
     const [answerComments, setAnswerComments] = useState({});
     const [showCommentField, setShowCommentField] = useState(null);
     const [showQuestionCommentField, setShowQuestionCommentField] = useState(null);
+    const [question, setQuestion] = useState([]);
 
     const location = useLocation();
     const { ques } = location.state || {};
-    console.log(ques);
 
     useEffect(() => {
         if (typeof token === 'string') {
@@ -68,7 +69,7 @@ export default function Posts() {
 
         async function getQuestionComments() {
             try {
-                const response = await fetch(`http://172.17.15.253:3002/questions/answers-comments/${ques._id}`, {
+                const response = await fetch(`http://172.17.15.253:3002/questions/answers-comments/${ques}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -79,6 +80,7 @@ export default function Posts() {
                     throw new Error('Failed to fetch question comments');
                 }
                 const data = await response.json();
+                setQuestion(data);
                 setGetComments(data.questionComments?.comments || []);
                 setAnswers(data.answers);
 
@@ -87,7 +89,6 @@ export default function Posts() {
                     return acc;
                 }, {});
                 setAnswerComments(commentsByAnswerId);
-
             } catch (error) {
                 console.error('Failed to fetch question comments:', error);
                 setGetComments([]);
@@ -102,13 +103,14 @@ export default function Posts() {
         setter(event.target.value);
     };
 
+
     const handleAddItem = async (type, postId, answerId = null) => {
         let referenceId, commentText, sanitizedComment;
 
         if (type === 'answer' && newAnswer.trim()) {
             const sanitizedAnswer = stripHtmlTags(newAnswer);
             try {
-                const response = await fetch(`http://172.17.15.253:3002/answers/addAnswer/${ques._id}`, {
+                const response = await fetch(`http://172.17.15.253:3002/answers/addAnswer/${ques}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -189,12 +191,16 @@ export default function Posts() {
         }
     };
 
+
     const handlePostLike = (postId) => {
-        // post like handling logic
+
     };
 
     const handlePostDislike = (postId) => {
-        // post dislike handling logic
+
+    };
+    const handleQuillChange = (value) => {
+        setNewAnswer(value);
     };
 
     const handleAnswerLike = (answerId) => {
@@ -204,14 +210,14 @@ export default function Posts() {
                 : answer
         ));
     };
-
     const handleAnswerDislike = (answerId) => {
-        setAnswers(answers.map(answer =>
-            answer._id === answerId
-                ? { ...answer, dislikes: answer.dislikes + 1 }
-                : answer
-        ));
-    };
+                setAnswers(answers.map(answer =>
+                    answer._id === answerId
+                        ? { ...answer, dislikes: answer.dislikes + 1 }
+                        : answer
+                ));
+            };
+        
 
     return (
         <Container>
@@ -223,89 +229,96 @@ export default function Posts() {
 
             <Grid container spacing={3}>
                 <Grid item xs={12}>
-                    <Paper style={{ padding: '10px' }}>
-                        <Typography variant="h5" component="h5" gutterBottom>
-                            {ques.question}
-                        </Typography>
-                        <Typography variant="body1" gutterBottom>
-                            {ques.description}
-                        </Typography>
-
-                        <Box>
-                            {ques.community.map((communityId, index) => (
-                                <Chip
-                                    key={index}
-                                    label={communities[communityId] || 'Unknown Community'}
-                                    style={{ marginRight: '5px', backgroundColor: '#2196f3', color: 'white', marginTop: '20px', fontSize: '11px', height: '25px' }}
-                                />
-                            ))}
-                        </Box>
-
-                        <Box mt={2} display="flex" justifyContent="space-between" alignItems="center">
-                            <Typography variant="body2" color="textSecondary">
-                                Posted by USER NAME on {format(new Date(ques.createdDate), 'MMMM d, yyyy')}
+                    {question.question ? (
+                        <Paper style={{ padding: '10px' }}>
+                            <Typography variant="h5" component="h5" gutterBottom>
+                                {question.question}
                             </Typography>
+                            <Typography variant="body1" gutterBottom>
+                                {question.description}
+                            </Typography>
+
                             <Box>
-                                <IconButton onClick={() => handlePostLike(ques._id)} aria-label="like">
-                                    <ThumbUpIcon />
-                                </IconButton>
-                                {ques.likesCount}
-                                <IconButton onClick={() => handlePostDislike(ques._id)} aria-label="dislike">
-                                    <ThumbDownIcon />
-                                </IconButton>
-                                {ques.dislikesCount}
-                                <IconButton onClick={() => setShowQuestionCommentField(ques._id)}>
-                                    <CommentIcon />
-                                </IconButton>
-                                {getComments.length}
-                            </Box>
-                        </Box>
-
-                        {showQuestionCommentField === ques._id && (
-                            <Box mt={2}>
-                                <TextField
-                                    label="Add a comment"
-                                    fullWidth
-                                    value={newQuestionComment}
-                                    onChange={handleInputChange(setNewQuestionComment)}
-                                />
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    style={{ marginTop: '10px' }}
-                                    onClick={() => handleAddItem('questionComment', ques._id)}
-                                >
-                                    Add Comment
-                                </Button>
-                            </Box>
-                        )}
-
-                        {getComments.length > 0 && (
-                            <Box mt={2}>
-                                <Typography variant="h6" gutterBottom>
-                                    Comments
-                                </Typography>
-                                {getComments.map((comment) => (
-                                    <Box key={comment._id} mb={2}>
-                                        <Paper style={{ padding: '10px', backgroundColor: '#e8eaf6' }}>
-                                            <Typography variant="body1">
-                                                {comment.comment}
-                                            </Typography>
-                                            <Typography variant="body2" color="textSecondary">
-                                                User Name - {format(new Date(comment.createdDate), 'MMMM d, yyyy')}
-                                            </Typography>
-                                        </Paper>
-                                    </Box>
+                                {question.community.map((communityId, index) => (
+                                    <Chip
+                                        key={index}
+                                        label={communities[communityId] || 'Unknown Community'}
+                                        style={{ marginRight: '5px', backgroundColor: '#2196f3', color: 'white', marginTop: '20px', fontSize: '11px', height: '25px' }}
+                                    />
                                 ))}
                             </Box>
-                        )}
-                    </Paper>
+
+                            <Box mt={2} display="flex" justifyContent="space-between" alignItems="center">
+                                <Typography variant="body2" color="textSecondary">
+                                    Posted by {question.userName} on {format(new Date(question.createdDate), 'MMMM d, yyyy')}
+                                </Typography>
+                                <Box display="flex" alignItems="center">
+                                    <IconButton onClick={() => handlePostLike(ques)} aria-label="like">
+                                        <ThumbUpIcon />
+                                    </IconButton>
+                                    <Typography variant="body2">{question.likes?.length}</Typography>
+
+                                    <IconButton onClick={() => handlePostDislike(ques)} aria-label="dislike">
+                                        <ThumbDownIcon />
+                                    </IconButton>
+                                    <Typography variant="body2">{question.dislikes.length}</Typography>
+
+                                    <IconButton onClick={() => setShowQuestionCommentField(ques)}>
+                                        <CommentIcon />
+                                    </IconButton>
+                                    <Typography variant="body2">{getComments.length}</Typography>
+                                </Box>
+                            </Box>
+
+                            {showQuestionCommentField === ques && (
+                                <Box mt={2}>
+                                    <TextField
+                                        label="Add comment"
+                                        fullWidth
+                                        value={newQuestionComment}
+                                        onChange={handleInputChange(setNewQuestionComment)}
+                                    />
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        style={{ marginTop: '10px' }}
+                                        onClick={() => handleAddItem('questionComment', ques)}
+                                    >
+                                        Add Comment
+                                    </Button>
+                                </Box>
+                            )}
+
+                            {getComments.length > 0 && (
+                                <Box mt={2}>
+                                    <Typography variant="h6" gutterBottom>
+                                        Comments
+                                    </Typography>
+                                    {getComments.map((comment) => (
+                                        <Box key={comment._id} mb={2}>
+                                            <Paper style={{ padding: '10px', backgroundColor: '#e8eaf6' }}>
+                                                <Typography variant="body1">
+                                                    {comment.comment}
+                                                </Typography>
+                                                <Typography variant="body2" color="textSecondary">
+                                                    {comment.userName} - {format(new Date(comment.createdDate), 'MMMM d, yyyy')}
+                                                </Typography>
+                                            </Paper>
+                                        </Box>
+                                    ))}
+                                </Box>
+                            )}
+                        </Paper>
+                    ) : (
+                        <Typography variant="body1" color="textSecondary">
+                            No question data available or loading...
+                        </Typography>
+                    )}
                 </Grid>
 
                 {answers.length > 0 && (
                     <Grid item xs={12}>
                         <Box>
-
                             <Typography variant="h6" component="h2" gutterBottom style={{ color: 'rgb(33, 150, 243)' }}>
                                 {answers.length} Answers:
                             </Typography>
@@ -313,31 +326,34 @@ export default function Posts() {
                             {answers.map((answer) => (
                                 <Paper key={answer._id} style={{ padding: '10px', marginBottom: '10px' }}>
                                     <Box mb={2}>
-                                        <Typography variant="body2" dangerouslySetInnerHTML={{ __html: answer.answer }} />                                 </Box>
+                                        <Typography variant="body2" dangerouslySetInnerHTML={{ __html: answer.answer }} />
+                                    </Box>
                                     <Box display="flex" justifyContent="space-between" alignItems="center">
                                         <Typography variant="body2" color="textSecondary">
-                                            {/* userName - {format(new Date(answer.createdDate), 'MMMM d, yyyy')} */}
-                                            userName - created date
+                                            {answer.userName} - {format(new Date(answer.createdDate), 'MMMM d, yyyy')}
                                         </Typography>
-                                        <Box>
-                                            <IconButton onClick={() => handleAnswerLike(answer.userId, answer._id)}>
+                                        <Box display="flex" alignItems="center">
+                                            <IconButton onClick={() => handleAnswerLike(answer._id)}>
                                                 <ThumbUpIcon />
                                             </IconButton>
-                                            {answer.likes}
-                                            <IconButton onClick={() => handleAnswerDislike(answer.userId, answer._id)}>
+                                            <Typography variant="body2">{answer.likes.length}</Typography>
+
+                                            <IconButton onClick={() => handleAnswerDislike(answer._id)}>
                                                 <ThumbDownIcon />
                                             </IconButton>
-                                            {answer.dislikes}
+                                            <Typography variant="body2">{answer.dislikes.length}</Typography>
+
                                             <IconButton onClick={() => setShowCommentField(showCommentField === answer._id ? null : answer._id)}>
                                                 <CommentIcon />
                                             </IconButton>
+                                            <Typography variant="body2">{(answerComments[answer._id] || []).length}</Typography>
                                         </Box>
                                     </Box>
 
                                     {showCommentField === answer._id && (
                                         <Box mt={2}>
                                             <TextField
-                                                label="Add a comment"
+                                                label="Add comment"
                                                 fullWidth
                                                 value={newComment}
                                                 onChange={handleInputChange(setNewComment)}
@@ -346,7 +362,7 @@ export default function Posts() {
                                                 variant="contained"
                                                 color="primary"
                                                 style={{ marginTop: '10px' }}
-                                                onClick={() => handleAddItem('comment', ques._id, answer._id)}
+                                                onClick={() => handleAddItem('comment', ques, answer._id)}
                                             >
                                                 Add Comment
                                             </Button>
@@ -355,21 +371,16 @@ export default function Posts() {
 
                                     {answerComments[answer._id] && answerComments[answer._id].length > 0 && (
                                         <Box mt={2}>
-                                            {/* <Typography variant="h8" gutterBottom>
-                                                Comments :
-                                            </Typography> */}
                                             <Typography variant="subtitle2">{answerComments[answer._id].length} Comments:</Typography>
                                             {answerComments[answer._id].map((comment) => (
-                                                <Box key={comment._id} mb={2}>
-                                                    <Paper style={{ padding: '10px', backgroundColor: '#e8eaf6' }}>
-                                                        <Typography variant="body1">
-                                                            {comment.comment}
-                                                        </Typography>
-                                                        <Typography variant="body2" color="textSecondary">
-                                                            User Name - {format(new Date(comment.createdDate), 'MMMM d, yyyy')}
-                                                        </Typography>
-                                                    </Paper>
-                                                </Box>
+                                                <Paper key={comment._id} style={{ padding: '10px', backgroundColor: '#f1f1f1', marginBottom: '5px' }}>
+                                                    <Typography variant="body2">
+                                                        {comment.comment}
+                                                    </Typography>
+                                                    <Typography variant="caption" color="textSecondary">
+                                                        {comment.userName} - {format(new Date(comment.createdDate), 'MMMM d, yyyy')}
+                                                    </Typography>
+                                                </Paper>
                                             ))}
                                         </Box>
                                     )}
@@ -378,40 +389,31 @@ export default function Posts() {
                         </Box>
                     </Grid>
                 )}
+            </Grid>
 
-                {showAnswerField ? (
-                    <Grid item xs={12}>
-                        <Box mt={2}>
-                            <TextField
-                                label="Your Answer"
-                                fullWidth
-                                multiline
-                                rows={4}
-                                value={newAnswer}
-                                onChange={handleInputChange(setNewAnswer)}
-                            />
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                style={{ marginTop: '10px' }}
-                                onClick={() => handleAddItem('answer', ques._id)}
-                            >
-                                Post Answer
-                            </Button>
-                        </Box>
-                    </Grid>
-                ) : (
+          {/* Answer Field */}
+            <Box mt={3}>
+                <Button variant="outlined" onClick={() => setShowAnswerField(!showAnswerField)}>
+                    {showAnswerField ? 'Cancel' : 'Add an Answer'}
+                </Button>
+                {showAnswerField && (
                     <Box mt={2}>
+                        <ReactQuill
+                            value={newAnswer}
+                            onChange={handleQuillChange}
+                        />
                         <Button
                             variant="contained"
                             color="primary"
-                            onClick={() => setShowAnswerField(true)}
+                            style={{ marginTop: '10px' }}
+                            onClick={() => handleAddItem('answer', ques)}
                         >
-                            Add an Answer
+                            Submit Answer
                         </Button>
                     </Box>
                 )}
-            </Grid>
+            </Box>
         </Container>
     );
 }
+

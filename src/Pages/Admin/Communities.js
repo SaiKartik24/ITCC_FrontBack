@@ -40,12 +40,8 @@ export default function Communities() {
     //   setCommunity(getHook.data);
     // }
 
-
-
-
     async function fetchData() {
  
-        // Fetch user data
         const userResponse = await fetch('http://172.17.15.253:3002/communities', {
           method: 'GET',
           headers: {
@@ -110,10 +106,10 @@ export default function Communities() {
               </CardContent>
               <CardActions sx={{ justifyContent: 'flex-end' }}>
                 <Box sx={{ '& > legend': { mt: 2 } }}>
-                  <Rating
-                    name="simple-controlled"
-                    value={value}
-                    onChange={(event, newValue) => setValue(newValue)}
+                <Rating
+                    name={`rating-${card.value}`}
+                    value={card.ratings || 0}
+                    precision={0.5}
                   />
                 </Box>
               </CardActions>

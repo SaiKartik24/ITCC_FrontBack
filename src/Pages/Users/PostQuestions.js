@@ -5,7 +5,7 @@ import { Box, Button, TextField, Chip, Paper, List, ListItem, InputAdornment, Di
 import useGet from '../../ServiceHelper/Api/useGet';
 import usePost from "../../ServiceHelper/Api/usePost";
 import { useForm } from "react-hook-form";
-import {jwtDecode} from 'jwt-decode';  // Corrected import
+import { jwtDecode } from 'jwt-decode';
 import { AuthContext } from '../../ServiceHelper/AuthContext';
 import useAxiosInstance from '../../ServiceHelper/Services';
 
@@ -23,10 +23,9 @@ export default function PostQuestions(props) {
   const [postUrl, setPostUrl] = useState("");
   const [triggerPost, setTriggerPost] = useState(false);
   const { response, error } = usePost(postUrl, postData, triggerPost);
-  const [userToken, setUserToken] = useState({});
 
   const handleClose = () => {
-    props.handleSignupClose(); 
+    props.handleSignupClose();
   };
 
   const modules = {
@@ -66,6 +65,9 @@ export default function PostQuestions(props) {
   }, [getHook.data, response, error]);
 
   const onSubmit = (data) => {
+    const token = localStorage.getItem('token');
+    const decoded = jwtDecode(token);
+
     try {
       let taggedValue = 0;
       community.forEach((item) => {
@@ -77,7 +79,7 @@ export default function PostQuestions(props) {
         question: data.question,
         description: data.description,
         community: taggedValue,
-        userId: userToken.userId,
+        userId: decoded.userId,
       });
       setPostUrl("/questions/addQuestion");
       setTriggerPost(true);
@@ -125,7 +127,7 @@ export default function PostQuestions(props) {
     <Dialog open={props.signupOpen} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle>
         <Typography variant="h5" component="div" align="center" gutterBottom>
-          <b>REGISTER</b>
+          <b>Post Question</b>
         </Typography>
       </DialogTitle>
       <DialogContent>
@@ -186,7 +188,7 @@ export default function PostQuestions(props) {
               )}
             </Box>
             <Box mt={3} display="flex" justifyContent="flex-start">
-              <Button type="submit" variant="contained" onClose={handleClose}>Post your Question</Button>
+              <Button type="submit" variant="contained">Post your Question</Button>
             </Box>
           </Box>
         </form>

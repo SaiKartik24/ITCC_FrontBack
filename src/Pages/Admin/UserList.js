@@ -53,7 +53,7 @@ export default function UserList() {
           throw new Error('API request failed');
         }
         const userData = await userResponse.json();
-        setUsers(userData);
+        setUsers(userData.data);
 
         // Fetch community data
         const communityResponse = await fetch('http://172.17.15.253:3002/lookup/getCommunity', {
@@ -87,7 +87,6 @@ export default function UserList() {
 
   const handleCardClick = (user) => {
     navigate('/users-details', { state: { user } });
-    console.log("navigate to user details");
   };
 
   const handleFabClick = () => {

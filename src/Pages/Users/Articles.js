@@ -4,8 +4,8 @@ import "quill/dist/quill.snow.css";
 import { TextField, Button, Grid, Radio, RadioGroup, FormControlLabel, FormControl, Autocomplete } from "@mui/material";
 import useGet from "../../ServiceHelper/Api/useGet";
 import usePost from "../../ServiceHelper/Api/usePost";
+import { jwtDecode } from "jwt-decode";
 
-// Define modules and formats once
 const quillModules = {
   toolbar: [
     [{ size: ["small", false, "large", "huge"] }],
@@ -23,6 +23,10 @@ const quillFormats = [
 ];
 
 export default function Articles() {
+
+  const token = localStorage.getItem('token');
+  const decoded = jwtDecode(token);
+
   const { data: communityData, loading: communityLoading, error: communityError } = useGet('/communities');
   const [selectedTags, setSelectedTags] = useState([]);
   const [access, setAccess] = useState("public");
@@ -31,7 +35,7 @@ export default function Articles() {
     content: "",
     community: [],
     createdDate: new Date().toISOString(),
-    userId: "user_id_placeholder",
+    userId:  decoded.userId || "defaultUserId",
     status: "draft",
     likes: [],
     dislikes: []

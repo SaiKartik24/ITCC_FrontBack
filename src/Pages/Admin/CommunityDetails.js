@@ -102,6 +102,7 @@ export default function CommunityDetails() {
 
       {value === 0 && (
         <Box p={3}>
+           <Typography variant="h6">{loading ? 'Loading...' : `${users.length} Users`}</Typography>
           <Grid container spacing={2}>
             {users.map((user, index) => (
               <Grid item xs={12} sm={6} md={3} key={index}>
@@ -136,7 +137,7 @@ export default function CommunityDetails() {
 
       {value === 1 && (
         <Box p={3}>
-          <Typography variant="h6">{loading ? 'Loading...' : `${questions.length} questions`}</Typography>
+          <Typography variant="h6">{loading ? 'Loading...' : `${questions.length} Questions`}</Typography>
           {error && <Typography color="error">{error}</Typography>}
           {!loading && !error && (
             <List>
@@ -155,6 +156,8 @@ export default function CommunityDetails() {
 
       {value === 2 && (
         <Box p={3}>
+        <Typography variant="h6">{loading ? 'Loading...' : `${articles.length} Articles`}</Typography>
+
           {error && <Typography color="error">{error}</Typography>}
           {!loading && !error && (
             <List>
@@ -163,7 +166,12 @@ export default function CommunityDetails() {
                   <ListItemAvatar>
                     <InsertDriveFileIcon />
                   </ListItemAvatar>
-                  <ListItemText primary={article.title} secondary={format(new Date(article.createdDate), 'yyyy-MM-dd kk:mm:ss')} />
+                  <Box>
+                  <Typography variant="body2" dangerouslySetInnerHTML={{ __html: article.title }} />
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="textSecondary">
+                     userName - {format(new Date(article.createdDate), 'MMMM d, yyyy')}
+                    </Typography></Box></Box>
                 </ListItem>
               ))}
             </List>

@@ -81,7 +81,7 @@ export default function UserDetails() {
             }
 
             const data = await response.json();
-            setQuestions(data.result);
+            setQuestions(data.questions);
           }
 
           if (postsTabValue === 'answers') {
@@ -97,7 +97,7 @@ export default function UserDetails() {
             }
 
             const data = await response.json();
-            setAnswers(data.result);
+            setAnswers(data.answers);
           }
         }
       } catch (error) {
@@ -204,7 +204,13 @@ export default function UserDetails() {
                 <ListItemAvatar>
                   <InsertDriveFileIcon />
                 </ListItemAvatar>
-                <ListItemText primary={<Link href={article.title} target="_blank">{article.title}</Link>} secondary={format(new Date(article.createdDate), 'yyyy-MM-dd kk:mm:ss')} />
+                <Box>
+                  <Typography variant="body2" dangerouslySetInnerHTML={{ __html: article.title }} />
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="textSecondary">
+                      userName - {format(new Date(article.createdDate), 'MMMM d, yyyy')}
+                    </Typography></Box></Box>
+
               </ListItem>
             ))}
           </List>

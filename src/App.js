@@ -14,7 +14,7 @@ import UserDetails from './Pages/Admin/UserDetails'
 import Posts from './Pages/Users/Posts';
 import Articles from './Pages/Users/Articles';
 import PostQuestions from './Pages/Users/PostQuestions';
-// import PostQuestions from './Pages/Users/PostQuestions'
+import ViewArticle from './Pages/Users/ViewArticle';
 export default function App() {
   
   return (
@@ -33,6 +33,7 @@ export default function App() {
           <Route path="user-post" element={<Posts/>} />
           <Route path="articles" element={<Articles/>} />
           <Route path="PostQuestions" element={<PostQuestions/>} />
+          <Route path="viewArticle" element={<ViewArticle/>} />
         </Route>
       </Routes>
     </Router>

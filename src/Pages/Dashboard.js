@@ -27,6 +27,7 @@ import Badge from '@mui/material/Badge';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";  
 import { AuthContext } from '../ServiceHelper/AuthContext';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 const drawerWidth = 240;
 
@@ -211,7 +212,8 @@ export default function Dashboard() {
         </List>}
         {userToken.userRole === 'user' && <List style={{paddingbottom:'0px'}}>
           <ListItem disablePadding>
-            <ListItemButton onClick={() => navigate('/user-dashboard')}>
+            <ListItemButton onClick={() => navigate('/user-dashboard')}
+               sx={getActiveStyle('/user-dashboard')}>
               <ListItemIcon>
                 <DashboardIcon />
               </ListItemIcon>
@@ -219,9 +221,10 @@ export default function Dashboard() {
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton onClick={() => navigate('/articles')}>
+            <ListItemButton onClick={() => navigate('/articles')}
+                 sx={getActiveStyle('/articles')}>
               <ListItemIcon>
-                <GroupIcon />
+              <DescriptionIcon />
               </ListItemIcon>
               <ListItemText primary="Articles" />
             </ListItemButton>

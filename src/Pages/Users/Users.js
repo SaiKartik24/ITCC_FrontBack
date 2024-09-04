@@ -11,6 +11,7 @@ import { styled } from '@mui/system';
 import PostQuestions from './PostQuestions';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 
 const CustomDialog = styled(Dialog)({
     '& .MuiPaper-root': {
@@ -37,8 +38,10 @@ export default function Users() {
     const [responseData, setResponseData] = useState([]);
     const [answerResponseData, setanswerResponseData] = useState([]);
     const [postResponseData, setpostResponseData] = useState([]);
+    const [articles, setArticles] = useState([]);
     const handleChange = (event, newValue) => { setValue(newValue) };
-    const handleSignupClose = () => { setOpen(false) };
+    const handleSignupClose = () => setSignupOpen(false);
+
     const handleSignupOpen = () => setSignupOpen(true);
     const navigate = useNavigate();
     useEffect(() => {
@@ -62,8 +65,37 @@ export default function Users() {
                 console.error('Error fetching question data:', error);
             }
         };
+
         fetchData();
     }, []);
+
+    useEffect(() => {
+
+        const token = localStorage.getItem('token');
+        const decoded = jwtDecode(token);
+        const fetchData = async () => {
+            try {
+                const response = await fetch(`http://172.17.15.253:3002/articles/getArticles/${decoded.userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch users');
+                }
+                const data = await response.json();
+                setArticles(data.article || []);
+                console.log(data.article);
+
+            } catch (error) {
+                console.error('Error fetching question data:', error);
+            }
+        };
+        fetchData();
+    }, []);
+
     useEffect(() => {
         const token = localStorage.getItem('token');
         const decoded = jwtDecode(token);
@@ -80,7 +112,7 @@ export default function Users() {
                     throw new Error(`Error: ${response.status}`);
                 }
                 const data = await response.json();
-                setanswerResponseData(data);
+                setanswerResponseData(data.answers);
             } catch (error) {
                 console.error('Error fetching question data:', error);
             }
@@ -113,9 +145,10 @@ export default function Users() {
 
     const publicQuestionClick = (ques) => {
         navigate('/user-post', { state: { ques } });
-        console.log(ques,"navigate to user posts");
-      };
-
+    };
+    const viewArticleClick = (article) => {
+        navigate('/viewArticle', { articleData: { article } })
+    }
 
     return (
         <div>
@@ -138,19 +171,22 @@ export default function Users() {
                 <Tabs value={value} onChange={handleChange} aria-label="community tabs">
                     <Tab label="Questions" />
                     <Tab label="Answers" />
-                    <Tab label="Posts" />
+                    <Tab label="Articles" />
+                    <Tab label="All Posts" />
                 </Tabs>
                 {value === 0 && (
                     <Box p={3}>
+                        <b>{responseData.length} Questions</b>
                         <List>
-                            {responseData?.result?.map((question, index) => (
+                            {responseData.map((question, index) => (
                                 <ListItem key={index}>
                                     <ListItemAvatar>
                                         <Badge color="primary">
                                             <QuestionAnswerIcon />
                                         </Badge>
                                     </ListItemAvatar>
-                                    <ListItemText primary={question.question} secondary={question.date} />
+                                    <ListItemText style={{ cursor: 'pointer' }} primary={question.question} secondary={format(new Date(question.createdDate), 'MMMM d, yyyy')}
+                                         />
                                 </ListItem>
                             ))}
                         </List>
@@ -158,16 +194,16 @@ export default function Users() {
                 )}
                 {value === 1 && (
                     <Box p={3}>
-                        <b>{answers.length} Answers</b>
+                        <b>{answerResponseData.length} Answers</b>
                         <List>
-                            {answerResponseData?.result?.map((answer, index) => (
+                            {answerResponseData.map((answer, index) => (
                                 <ListItem key={index}>
                                     <ListItemAvatar>
                                         <Badge badgeContent={answer.votes} color="primary">
                                             <QuestionAnswerIcon />
                                         </Badge>
                                     </ListItemAvatar>
-                                    <ListItemText primary={answer.answer} secondary={answer.date} />
+                                    <ListItemText primary={answer.answer} secondary={format(new Date(answer.createdDate), 'MMMM d, yyyy')} />
                                 </ListItem>
                             ))}
                         </List>
@@ -175,7 +211,30 @@ export default function Users() {
                 )}
                 {value === 2 && (
                     <Box p={3}>
-                        <b>{answers.length} Posts</b>
+                        <b>{articles.length} Articles</b>
+                        <List>
+                            {articles.map((article, index) => (
+                                <ListItem key={index}>
+                                    <ListItemAvatar>
+                                        <Badge color="primary">
+                                            <QuestionAnswerIcon />
+                                        </Badge>
+                                    </ListItemAvatar>
+
+                                    <Box>
+                                        <Typography style={{ cursor: 'pointer' }} variant="body2" dangerouslySetInnerHTML={{ __html: article.title }} onClick={() => viewArticleClick(article)} />
+                                        <Box display="flex" justifyContent="space-between" alignItems="center">
+                                            <Typography variant="body2" color="textSecondary">
+                                                {format(new Date(article.createdDate), 'MMMM d, yyyy')}
+                                            </Typography></Box></Box>
+                                </ListItem>
+                            ))}
+                        </List>
+                    </Box>
+                )}
+                {value === 3 && (
+                    <Box p={3}>
+                        <b>{postResponseData.length} Posts</b>
                         <List>
                             {postResponseData.map((ques, index) => (
                                 <ListItem key={index}>
@@ -184,7 +243,13 @@ export default function Users() {
                                             <QuestionAnswerIcon />
                                         </Badge>
                                     </ListItemAvatar>
-                                    <ListItemText primary={ques.question} secondary={ques.createdDate}  onClick={() => publicQuestionClick(ques)}/>
+                                    <Box>
+                                        <Typography style={{ cursor: 'pointer' }} variant="body2" dangerouslySetInnerHTML={{ __html: ques.question }} onClick={() => publicQuestionClick(ques._id)}/>
+                                        <Box display="flex" justifyContent="space-between" alignItems="center">
+                                            <Typography variant="body2" color="textSecondary">
+                                           {ques.userName}     {format(new Date(ques.createdDate), 'MMMM d, yyyy')}
+                                            </Typography></Box></Box>
+
                                 </ListItem>
                             ))}
                         </List>
