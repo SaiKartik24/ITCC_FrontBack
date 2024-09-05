@@ -13,6 +13,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import useGet from '../../ServiceHelper/Api/useGet';
 import { useEffect } from 'react';
+import { useState } from 'react';
+import AddCommunities from './AddCommunities';
 
 const UserCard = styled(Card)(({ theme }) => ({
   borderRadius: 5,
@@ -29,34 +31,30 @@ const UserCard = styled(Card)(({ theme }) => ({
 }));
 
 export default function Communities() {
-  const [value, setValue] = React.useState(2);
   const navigate = useNavigate();
   const [getUrl, setGetUrl] = React.useState("/communities");
   const [community, setCommunity] = React.useState([]);
   const getHook = useGet(getUrl);
+  const handleSignupClose = () => setSignupOpen(false);
+  const handleSignupOpen = () => setSignupOpen(true);
+  const [signupOpen, setSignupOpen] = useState(false);
 
   useEffect(() => {
-    // if (getHook.data !== null) {
-    //   setCommunity(getHook.data);
-    // }
-
     async function fetchData() {
- 
-        const userResponse = await fetch('http://172.17.15.253:3002/communities', {
-          method: 'GET',
-          headers: {
-            observe: 'response',
-            'Content-Type': 'application/json',
-            // 'Authorization': `Bearer ${token}`
-          }
-        });
-        if (!userResponse.ok) {
-          throw new Error('API request failed');
+      const userResponse = await fetch('http://172.17.15.253:3002/communities', {
+        method: 'GET',
+        headers: {
+          observe: 'response',
+          'Content-Type': 'application/json',
         }
-        const communityData = await userResponse.json();
-        setCommunity(communityData);
+      });
+      if (!userResponse.ok) {
+        throw new Error('API request failed');
       }
-      fetchData()
+      const communityData = await userResponse.json();
+      setCommunity(communityData);
+    }
+    fetchData()
   }, [getHook.data]);
 
   const handleCardClick = (communityId) => {
@@ -106,7 +104,7 @@ export default function Communities() {
               </CardContent>
               <CardActions sx={{ justifyContent: 'flex-end' }}>
                 <Box sx={{ '& > legend': { mt: 2 } }}>
-                <Rating
+                  <Rating
                     name={`rating-${card.value}`}
                     value={card.ratings || 0}
                     precision={0.5}
@@ -117,10 +115,12 @@ export default function Communities() {
           </Grid>
         ))}
       </Grid>
+      <AddCommunities signupOpen={signupOpen} handleSignupClose={handleSignupClose} />
       <Fab
         color="primary"
         aria-label="add"
         sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        onClick={handleSignupOpen}
       >
         <AddIcon />
       </Fab>

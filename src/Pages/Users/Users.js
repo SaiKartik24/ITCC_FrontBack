@@ -34,7 +34,6 @@ export default function Users() {
     const [value, setValue] = useState(0);
     const [signupOpen, setSignupOpen] = useState(false);
     const [open, setOpen] = useState(false);
-    const [answers, setAnswers] = useState([]);
     const [responseData, setResponseData] = useState([]);
     const [answerResponseData, setanswerResponseData] = useState([]);
     const [postResponseData, setpostResponseData] = useState([]);
@@ -140,8 +139,8 @@ export default function Users() {
         fetchData();
     }, []);
 
-    const publicQuestionClick = (ques) => {
-        navigate('/user-post', { state: { ques } });
+    const publicQuestionClick = (ques,question) => {
+        navigate('/user-post', { state: { ques,question } });
     };
     const viewArticleClick = (article) => {
         navigate('/viewArticle', { state: { id: article._id } });
@@ -187,7 +186,7 @@ export default function Users() {
                                             <QuestionAnswerIcon />
                                         </Badge>
                                     </ListItemAvatar>
-                                    <ListItemText style={{ cursor: 'pointer' }} primary={question.question} secondary={format(new Date(question.createdDate), 'MMMM d, yyyy')}
+                                    <ListItemText style={{ cursor: 'pointer' }} onClick={() => publicQuestionClick(question._id)} primary={question.question} secondary={format(new Date(question.createdDate), 'MMMM d, yyyy')}
                                     />
                                 </ListItem>
                             ))}
@@ -238,7 +237,6 @@ export default function Users() {
                                             }
                                         />
                                     </Box>
-
                                 </ListItem>
                             ))}
                         </List>
@@ -268,7 +266,7 @@ export default function Users() {
                     </Box>
                 )}
             </Box>
-            <CustomDialog
+            {/* <CustomDialog
                 open={open}
                 onClose={handleSignupClose}
                 aria-labelledby="ask-question-dialog-title"
@@ -297,7 +295,7 @@ export default function Users() {
                 <DialogActions>
                     <CustomButton onClick={handleSignupClose}>Submit</CustomButton>
                 </DialogActions>
-            </CustomDialog>
+            </CustomDialog> */}
             <PostQuestions signupOpen={signupOpen} handleSignupClose={handleSignupClose} />
             <Fab
                 color="primary"
