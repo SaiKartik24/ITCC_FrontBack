@@ -12,6 +12,7 @@ import PostQuestions from './PostQuestions';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 const CustomDialog = styled(Dialog)({
     '& .MuiPaper-root': {
@@ -29,7 +30,6 @@ const CustomButton = styled(Button)({
         backgroundColor: '#1976d2',
     },
 });
-
 export default function Users() {
     const [value, setValue] = useState(0);
     const [signupOpen, setSignupOpen] = useState(false);
@@ -41,7 +41,6 @@ export default function Users() {
     const [articles, setArticles] = useState([]);
     const handleChange = (event, newValue) => { setValue(newValue) };
     const handleSignupClose = () => setSignupOpen(false);
-
     const handleSignupOpen = () => setSignupOpen(true);
     const navigate = useNavigate();
     useEffect(() => {
@@ -87,8 +86,6 @@ export default function Users() {
                 }
                 const data = await response.json();
                 setArticles(data.article || []);
-                console.log(data.article);
-
             } catch (error) {
                 console.error('Error fetching question data:', error);
             }
@@ -147,9 +144,14 @@ export default function Users() {
         navigate('/user-post', { state: { ques } });
     };
     const viewArticleClick = (article) => {
-        navigate('/viewArticle', { articleData: { article } })
+        navigate('/viewArticle', { state: { id: article._id } });
     }
-
+    function truncateText(text, maxLength) {
+        if (text.length <= maxLength) {
+            return text;
+        }
+        return text.substring(0, maxLength) + '...';
+    }
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
@@ -186,7 +188,7 @@ export default function Users() {
                                         </Badge>
                                     </ListItemAvatar>
                                     <ListItemText style={{ cursor: 'pointer' }} primary={question.question} secondary={format(new Date(question.createdDate), 'MMMM d, yyyy')}
-                                         />
+                                    />
                                 </ListItem>
                             ))}
                         </List>
@@ -217,16 +219,26 @@ export default function Users() {
                                 <ListItem key={index}>
                                     <ListItemAvatar>
                                         <Badge color="primary">
-                                            <QuestionAnswerIcon />
+                                            <DescriptionIcon />
                                         </Badge>
                                     </ListItemAvatar>
-
                                     <Box>
-                                        <Typography style={{ cursor: 'pointer' }} variant="body2" dangerouslySetInnerHTML={{ __html: article.title }} onClick={() => viewArticleClick(article)} />
-                                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                                            <Typography variant="body2" color="textSecondary">
-                                                {format(new Date(article.createdDate), 'MMMM d, yyyy')}
-                                            </Typography></Box></Box>
+                                        <Typography
+                                            style={{ cursor: 'pointer' }}
+                                            variant="body2"
+                                            dangerouslySetInnerHTML={{ __html: article.title }}
+                                            onClick={() => viewArticleClick(article)}
+                                        />
+                                        <ListItemText
+                                            primary={<span dangerouslySetInnerHTML={{ __html: truncateText(article.content, 100) }} />}
+                                            secondary={
+                                                <span style={{ marginTop: '4px', display: 'block' }}>
+                                                    {format(new Date(article.createdDate), 'MMMM d, yyyy')}
+                                                </span>
+                                            }
+                                        />
+                                    </Box>
+
                                 </ListItem>
                             ))}
                         </List>
@@ -244,10 +256,10 @@ export default function Users() {
                                         </Badge>
                                     </ListItemAvatar>
                                     <Box>
-                                        <Typography style={{ cursor: 'pointer' }} variant="body2" dangerouslySetInnerHTML={{ __html: ques.question }} onClick={() => publicQuestionClick(ques._id)}/>
+                                        <Typography style={{ cursor: 'pointer' }} variant="body2" dangerouslySetInnerHTML={{ __html: ques.question }} onClick={() => publicQuestionClick(ques._id)} />
                                         <Box display="flex" justifyContent="space-between" alignItems="center">
                                             <Typography variant="body2" color="textSecondary">
-                                           {ques.userName}     {format(new Date(ques.createdDate), 'MMMM d, yyyy')}
+                                                {ques.userName}     {format(new Date(ques.createdDate), 'MMMM d, yyyy')}
                                             </Typography></Box></Box>
 
                                 </ListItem>

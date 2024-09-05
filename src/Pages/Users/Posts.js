@@ -28,7 +28,6 @@ export default function Posts() {
     const [showCommentField, setShowCommentField] = useState(null);
     const [showQuestionCommentField, setShowQuestionCommentField] = useState(null);
     const [question, setQuestion] = useState([]);
-
     const location = useLocation();
     const { ques } = location.state || {};
 

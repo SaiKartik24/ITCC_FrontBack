@@ -24,13 +24,13 @@ function Registration(props) {
 
   useEffect(() => {
     if (getUrl === "") {
-      setGetUrl("/users/getCommunity");
+      setGetUrl("lookup/getCommunity");
     }
     if (getHook.data !== null) {
       setCommunity(getHook.data);
     }
   }, [getHook.data]);
-
+  
   const applyOnlyNumbers = (event) => {
     const input = event.target.value;
     const charCode = event.which ? event.which : event.keyCode;
