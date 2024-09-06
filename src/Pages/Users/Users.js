@@ -13,6 +13,8 @@ import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import DescriptionIcon from '@mui/icons-material/Description';
+import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
+import QuizIcon from '@mui/icons-material/Quiz';
 
 const CustomDialog = styled(Dialog)({
     '& .MuiPaper-root': {
@@ -139,8 +141,8 @@ export default function Users() {
         fetchData();
     }, []);
 
-    const publicQuestionClick = (ques,question) => {
-        navigate('/user-post', { state: { ques,question } });
+    const publicQuestionClick = (ques, question) => {
+        navigate('/user-post', { state: { ques, question } });
     };
     const viewArticleClick = (article) => {
         navigate('/viewArticle', { state: { id: article._id } });
@@ -183,7 +185,7 @@ export default function Users() {
                                 <ListItem key={index}>
                                     <ListItemAvatar>
                                         <Badge color="primary">
-                                            <QuestionAnswerIcon />
+                                            <QuizIcon />
                                         </Badge>
                                     </ListItemAvatar>
                                     <ListItemText style={{ cursor: 'pointer' }} onClick={() => publicQuestionClick(question._id)} primary={question.question} secondary={format(new Date(question.createdDate), 'MMMM d, yyyy')}
@@ -223,7 +225,7 @@ export default function Users() {
                                     </ListItemAvatar>
                                     <Box>
                                         <Typography
-                                            style={{ cursor: 'pointer' }}
+                                            style={{ cursor: 'pointer', fontWeight: 'bold' }}
                                             variant="body2"
                                             dangerouslySetInnerHTML={{ __html: article.title }}
                                             onClick={() => viewArticleClick(article)}
@@ -237,6 +239,7 @@ export default function Users() {
                                             }
                                         />
                                     </Box>
+
                                 </ListItem>
                             ))}
                         </List>
