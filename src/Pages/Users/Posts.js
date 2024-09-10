@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Container, Typography, Button, Box, Grid, Paper, IconButton, Chip, TextField } from '@mui/material';
+import { Container, Typography, Button, Box, Grid, Paper, IconButton, Chip, TextField, CircularProgress } from '@mui/material';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import CommentIcon from '@mui/icons-material/Comment';
@@ -28,9 +28,91 @@ export default function Posts() {
     const [showCommentField, setShowCommentField] = useState(null);
     const [showQuestionCommentField, setShowQuestionCommentField] = useState(null);
     const [question, setQuestion] = useState([]);
+    const [loading, setLoading] = useState(false);
+
 
     const location = useLocation();
     const { ques } = location.state || {};
+
+
+    const handleLikeDislike = async (type, id, action, userId,) => {
+        try {
+            const response = await fetch('http://172.17.15.253:3002/questions/addLikesDislikes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    id: id,
+                    type: type,
+                    action: action,
+                    userId: userId
+                })
+            });
+            const result = await response.json();
+            getQuestionComments();
+            if (result.success) {
+                getQuestionComments();
+                if (type === 'question') {
+                    setQuestion(prevQuestion => {
+                        const updatedLikes = action === 'like'
+                            ? [...prevQuestion.likes, userId]
+                            : prevQuestion.likes.filter(like => like !== userId);
+
+                        const updatedDislikes = action === 'dislike'
+                            ? [...prevQuestion.dislikes, userId]
+                            : prevQuestion.dislikes.filter(dislike => dislike !== userId);
+
+                        return {
+                            ...prevQuestion,
+                            likes: updatedLikes,
+                            dislikes: updatedDislikes
+                        };
+                    });
+                } else if (type === 'answer') {
+                    setAnswers(prevAnswers =>
+                        prevAnswers.map(answer =>
+                            answer._id === id
+                                ? {
+                                    ...answer,
+                                    likes: action === 'like'
+                                        ? [...answer.likes, userId]
+                                        : answer.likes.filter(like => like !== userId),
+                                    dislikes: action === 'dislike'
+                                        ? [...answer.dislikes, userId]
+                                        : answer.dislikes.filter(dislike => dislike !== userId)
+                                }
+                                : answer
+                        )
+                    );
+                } else if (type === 'comment') {
+                    setAnswerComments(prevAnswerComments => ({
+                        ...prevAnswerComments,
+                        [id]: {
+                            ...prevAnswerComments[id],
+                            likes: action === 'like'
+                                ? prevAnswerComments[id].likes + 1
+                                : prevAnswerComments[id].likes - 1,
+                            dislikes: action === 'dislike'
+                                ? prevAnswerComments[id].dislikes + 1
+                                : prevAnswerComments[id].dislikes - 1
+                        }
+                    }));
+                }
+            } else {
+                console.error('Error performing action:', result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    const handleLikeDislikeClick = (type, id, action) => {
+        if (['like', 'dislike'].includes(action)) {
+            handleLikeDislike(type, id, action, userToken.userId);
+        }
+    };
 
     useEffect(() => {
         if (typeof token === 'string') {
@@ -67,48 +149,50 @@ export default function Posts() {
             }
         }
 
-        async function getQuestionComments() {
-            try {
-                const response = await fetch(`http://172.17.15.253:3002/questions/answers-comments/${ques}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                if (!response.ok) {
-                    throw new Error('Failed to fetch question comments');
-                }
-                const data = await response.json();
-                setQuestion(data);
-                setGetComments(data.questionComments?.comments || []);
-                setAnswers(data.answers);
-
-                const commentsByAnswerId = data.answers.reduce((acc, answer) => {
-                    acc[answer._id] = answer.answerComments || [];
-                    return acc;
-                }, {});
-                setAnswerComments(commentsByAnswerId);
-            } catch (error) {
-                console.error('Failed to fetch question comments:', error);
-                setGetComments([]);
-            }
-        }
-
         getQuestionComments();
         fetchData();
     }, [token]);
 
+    async function getQuestionComments() {
+        setLoading(true);
+        try {
+            const response = await fetch(`http://172.17.15.253:3002/questions/answers-comments/${ques}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch question comments');
+            }
+            const data = await response.json();
+            setLoading(false); 
+            setQuestion(data);
+            setGetComments(data.questionComments?.comments || []);
+            setAnswers(data.answers);
+
+            const commentsByAnswerId = data.answers.reduce((acc, answer) => {
+                acc[answer._id] = answer.answerComments || [];
+                return acc;
+            }, {});
+            setAnswerComments(commentsByAnswerId);
+        } catch (error) {
+            console.error('Failed to fetch question comments:', error);
+            setGetComments([]);
+        }
+    }
+
     const handleInputChange = (setter) => (event) => {
         setter(event.target.value);
     };
-
 
     const handleAddItem = async (type, postId, answerId = null) => {
         let referenceId, commentText, sanitizedComment;
 
         if (type === 'answer' && newAnswer.trim()) {
             const sanitizedAnswer = stripHtmlTags(newAnswer);
+            setLoading(true);
             try {
                 const response = await fetch(`http://172.17.15.253:3002/answers/addAnswer/${ques}`, {
                     method: 'POST',
@@ -123,6 +207,8 @@ export default function Posts() {
                 });
 
                 const result = await response.json();
+                setLoading(false);
+                getQuestionComments();
                 if (result.success) {
                     setAnswers([...answers, {
                         _id: result.data.answer._id,
@@ -159,6 +245,7 @@ export default function Posts() {
                     })
                 });
                 const result = await response.json();
+                getQuestionComments();
                 if (result.success) {
                     if (type === 'comment') {
                         setAnswerComments({
@@ -191,36 +278,29 @@ export default function Posts() {
         }
     };
 
-
-    const handlePostLike = (postId) => {
-
-    };
-
-    const handlePostDislike = (postId) => {
-
-    };
     const handleQuillChange = (value) => {
         setNewAnswer(value);
     };
 
-    const handleAnswerLike = (answerId) => {
-        setAnswers(answers.map(answer =>
-            answer._id === answerId
-                ? { ...answer, likes: answer.likes + 1 }
-                : answer
-        ));
-    };
-    const handleAnswerDislike = (answerId) => {
-                setAnswers(answers.map(answer =>
-                    answer._id === answerId
-                        ? { ...answer, dislikes: answer.dislikes + 1 }
-                        : answer
-                ));
-            };
-        
-
     return (
         <Container>
+
+            {loading && (
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    position="fixed"
+                    top="50%"
+                    left="50%"
+                    transform="translate(-50%, -50%)"
+                    zIndex="9999"
+                >
+                    <CircularProgress />
+                </Box>
+            )}
+
+
             <Box my={4}>
                 <Typography variant="h4" component="h1" gutterBottom>
                     Posts
@@ -231,8 +311,8 @@ export default function Posts() {
                 <Grid item xs={12}>
                     {question.question ? (
                         <Paper style={{ padding: '10px' }}>
-                            <Typography variant="h5" component="h5" gutterBottom>
-                                {question.question}
+                            <Typography variant="h5" component="h5" gutterBottom >{stripHtmlTags(question.question)}
+                                {/* {question.question} */}
                             </Typography>
                             <Typography variant="body1" gutterBottom>
                                 {question.description}
@@ -253,16 +333,17 @@ export default function Posts() {
                                     Posted by {question.userName} on {format(new Date(question.createdDate), 'MMMM d, yyyy')}
                                 </Typography>
                                 <Box display="flex" alignItems="center">
-                                    <IconButton onClick={() => handlePostLike(ques)} aria-label="like">
+                                    <IconButton onClick={() => handleLikeDislikeClick('question', ques, 'like')} aria-label="like"
+                                    >
+                                        {/* color={userAction.likedQuestions.includes(ques) ? 'primary' : 'default'} */}
                                         <ThumbUpIcon />
                                     </IconButton>
                                     <Typography variant="body2">{question.likes?.length}</Typography>
 
-                                    <IconButton onClick={() => handlePostDislike(ques)} aria-label="dislike">
+                                    <IconButton onClick={() => handleLikeDislikeClick('question', ques, 'dislike')} aria-label="dislike">
                                         <ThumbDownIcon />
                                     </IconButton>
                                     <Typography variant="body2">{question.dislikes.length}</Typography>
-
                                     <IconButton onClick={() => setShowQuestionCommentField(ques)}>
                                         <CommentIcon />
                                     </IconButton>
@@ -295,16 +376,29 @@ export default function Posts() {
                                         Comments
                                     </Typography>
                                     {getComments.map((comment) => (
-                                        <Box key={comment._id} mb={2}>
-                                            <Paper style={{ padding: '10px', backgroundColor: '#e8eaf6' }}>
-                                                <Typography variant="body1">
-                                                    {comment.comment}
-                                                </Typography>
+                                        // <Box  mb={2}>
+                                        <Paper key={comment._id} style={{ padding: '10px', backgroundColor: '#f1f1f1', marginBottom: '5px' }}>
+                                            <Typography variant="body1">
+                                                {comment.comment}
+                                            </Typography>
+                                            <Box mt={2} display="flex" justifyContent="space-between" alignItems="center">
                                                 <Typography variant="body2" color="textSecondary">
                                                     {comment.userName} - {format(new Date(comment.createdDate), 'MMMM d, yyyy')}
                                                 </Typography>
-                                            </Paper>
-                                        </Box>
+                                                <Box display="flex" alignItems="center">
+                                                    <IconButton onClick={() => handleLikeDislikeClick('comment', comment._id, 'like')}>
+                                                        <ThumbUpIcon />
+                                                    </IconButton>
+                                                    <Typography variant="body2">{comment.likesCount}</Typography>
+
+                                                    <IconButton onClick={() => handleLikeDislikeClick('comment', comment._id, 'dislike')}>
+                                                        <ThumbDownIcon />
+                                                    </IconButton>
+                                                    <Typography variant="body2">{comment.dislikesCount}</Typography>
+                                                </Box>
+                                            </Box>
+                                        </Paper>
+                                        // </Box>
                                     ))}
                                 </Box>
                             )}
@@ -333,12 +427,14 @@ export default function Posts() {
                                             {answer.userName} - {format(new Date(answer.createdDate), 'MMMM d, yyyy')}
                                         </Typography>
                                         <Box display="flex" alignItems="center">
-                                            <IconButton onClick={() => handleAnswerLike(answer._id)}>
+                                            <IconButton onClick={() => handleLikeDislikeClick('answer', answer._id, 'like')}
+                                            >
                                                 <ThumbUpIcon />
                                             </IconButton>
                                             <Typography variant="body2">{answer.likes.length}</Typography>
 
-                                            <IconButton onClick={() => handleAnswerDislike(answer._id)}>
+                                            <IconButton onClick={() => handleLikeDislikeClick('answer', answer._id, 'dislike')}
+                                            >
                                                 <ThumbDownIcon />
                                             </IconButton>
                                             <Typography variant="body2">{answer.dislikes.length}</Typography>
@@ -371,15 +467,30 @@ export default function Posts() {
 
                                     {answerComments[answer._id] && answerComments[answer._id].length > 0 && (
                                         <Box mt={2}>
-                                            <Typography variant="subtitle2">{answerComments[answer._id].length} Comments:</Typography>
+                                            <Typography variant="subtitle2"> Comments:</Typography>
                                             {answerComments[answer._id].map((comment) => (
                                                 <Paper key={comment._id} style={{ padding: '10px', backgroundColor: '#f1f1f1', marginBottom: '5px' }}>
                                                     <Typography variant="body2">
                                                         {comment.comment}
                                                     </Typography>
-                                                    <Typography variant="caption" color="textSecondary">
-                                                        {comment.userName} - {format(new Date(comment.createdDate), 'MMMM d, yyyy')}
-                                                    </Typography>
+                                                    <Box mt={2} display="flex" justifyContent="space-between" alignItems="center">
+                                                        <Typography variant="body2" color="textSecondary">
+                                                            {comment.userName} - {format(new Date(comment.createdDate), 'MMMM d, yyyy')}
+                                                        </Typography>
+                                                        <Box display="flex" alignItems="center">
+                                                            <IconButton onClick={() => handleLikeDislikeClick('comment', comment._id, 'like')}>
+                                                                <ThumbUpIcon />
+                                                            </IconButton>
+                                                            <Typography variant="body2">{comment.likesCount}</Typography>
+
+                                                            <IconButton onClick={() => handleLikeDislikeClick('comment', comment._id, 'dislike')}>
+                                                                <ThumbDownIcon />
+                                                            </IconButton>
+                                                            <Typography variant="body2">{comment.dislikesCount}</Typography>
+
+                                                        </Box>
+                                                    </Box>
+
                                                 </Paper>
                                             ))}
                                         </Box>
@@ -391,16 +502,16 @@ export default function Posts() {
                 )}
             </Grid>
 
-          {/* Answer Field */}
+            {/* Answer Field */}
             <Box mt={3}>
                 <Button variant="outlined" onClick={() => setShowAnswerField(!showAnswerField)}>
-                    {showAnswerField ? 'Cancel' : 'Add an Answer'}
+                    {showAnswerField ? 'Cancel' : 'Add Answer'}
                 </Button>
                 {showAnswerField && (
                     <Box mt={2}>
                         <ReactQuill
                             value={newAnswer}
-                            onChange={handleQuillChange}
+                            onChange={handleQuillChange} style={{ height: "200px", marginBottom: '50px' }}
                         />
                         <Button
                             variant="contained"
@@ -408,7 +519,7 @@ export default function Posts() {
                             style={{ marginTop: '10px' }}
                             onClick={() => handleAddItem('answer', ques)}
                         >
-                            Submit Answer
+                            Post Answer
                         </Button>
                     </Box>
                 )}
@@ -416,4 +527,3 @@ export default function Posts() {
         </Container>
     );
 }
-

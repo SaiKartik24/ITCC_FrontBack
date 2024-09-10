@@ -104,7 +104,7 @@ export default function Communities() {
                   <b>Questions:</b> {card.totalQuestionsCount}
                 </Typography>
               </CardContent>
-              <CardActions sx={{ justifyContent: 'flex-end' }}>
+              {/* <CardActions sx={{ justifyContent: 'flex-end' }}>
                 <Box sx={{ '& > legend': { mt: 2 } }}>
                 <Rating
                     name={`rating-${card.value}`}
@@ -112,7 +112,7 @@ export default function Communities() {
                     precision={0.5}
                   />
                 </Box>
-              </CardActions>
+              </CardActions> */}
             </UserCard>
           </Grid>
         ))}

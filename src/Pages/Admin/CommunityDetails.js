@@ -25,9 +25,7 @@ export default function CommunityDetails() {
     async function fetchPosts() {
       try {
         setLoading(true);
-
-        let response;
-        let data;
+        let response, data;
 
         if (value === 0) {
           response = await fetch(`http://172.17.15.253:3002/community/getUsersByCommunity/${communityValue}`, {
@@ -37,9 +35,7 @@ export default function CommunityDetails() {
               'Authorization': `Bearer ${token}`
             },
           });
-          if (!response.ok) {
-            throw new Error('Failed to fetch users');
-          }
+          if (!response.ok) throw new Error('Failed to fetch users');
           data = await response.json();
           setUsers(data.users || []);
         } else if (value === 1) {
@@ -50,11 +46,9 @@ export default function CommunityDetails() {
               'Authorization': `Bearer ${token}`
             },
           });
-          if (!response.ok) {
-            throw new Error('Failed to fetch questions');
-          }
+          if (!response.ok) throw new Error('Failed to fetch questions');
           data = await response.json();
-          setQuestions(data.questions || []); // Use fallback empty array
+          setQuestions(data.questions || []);
         } else if (value === 2) {
           response = await fetch(`http://172.17.15.253:3002/community/getArticlesByCommunity/${communityValue}`, {
             method: 'GET',
@@ -63,9 +57,7 @@ export default function CommunityDetails() {
               'Authorization': `Bearer ${token}`
             },
           });
-          if (!response.ok) {
-            throw new Error('Failed to fetch articles');
-          }
+          if (!response.ok) throw new Error('Failed to fetch articles');
           data = await response.json();
           setArticles(data.articles || []);
         }
@@ -77,7 +69,6 @@ export default function CommunityDetails() {
       }
     }
     fetchPosts();
-
   }, [value, communityValue, token]);
 
   const handleChange = (event, newValue) => {
@@ -93,20 +84,28 @@ export default function CommunityDetails() {
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Tabs value={value} onChange={handleChange} aria-label="community tabs">
+    <Box sx={{ width: '100%', p: 3 }}>
+      <Tabs value={value} onChange={handleChange} aria-label="community tabs" sx={{ mb: 3 }}>
         <Tab label="Community Users" />
         <Tab label="Community Posts" />
         <Tab label="Community Articles" />
       </Tabs>
 
       {value === 0 && (
-        <Box p={3}>
-           <Typography variant="h6">{loading ? 'Loading...' : `${users.length} Users`}</Typography>
-          <Grid container spacing={2}>
+        <Box>
+          <Typography variant="h6">{loading ? 'Loading...' : `${users.length} Users`}</Typography>
+          <Grid container spacing={3}>
             {users.map((user, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
-                <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', p: 2, border: '1px solid #ccc', borderRadius: '8px' }}>
+              <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+                <Box sx={{
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  p: 2,
+                  border: '1px solid #ccc',
+                  borderRadius: '8px',
+                }}>
                   <IconButton
                     sx={{ position: 'absolute', top: 8, right: 8 }}
                     onClick={handleClick}
@@ -123,20 +122,32 @@ export default function CommunityDetails() {
                       },
                     }}
                   >
-                    <MenuItem onClick={handleClose}>Delete</MenuItem>
+                    <MenuItem onClick={handleClose}>Block</MenuItem>
                   </Menu>
                   <Avatar src={user.profilePicture} sx={{ width: 56, height: 56, mb: 2 }} />
-                  <Typography variant="h6">{user.firstName} {user.lastName}</Typography>
-                  <Typography variant="body2">{user.email}</Typography>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      width: '100%',
+                      textAlign: 'center'
+                    }}
+                  >
+                    {user.firstName} {user.lastName}
+                  </Typography>
+                  <Typography variant="body2" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {user.email}
+                  </Typography>
                 </Box>
               </Grid>
             ))}
           </Grid>
         </Box>
       )}
-
       {value === 1 && (
-        <Box p={3}>
+        <Box>
           <Typography variant="h6">{loading ? 'Loading...' : `${questions.length} Questions`}</Typography>
           {error && <Typography color="error">{error}</Typography>}
           {!loading && !error && (
@@ -146,7 +157,10 @@ export default function CommunityDetails() {
                   <ListItemAvatar>
                     <QuestionMarkIcon />
                   </ListItemAvatar>
-                  <ListItemText primary={question.question} secondary={format(new Date(question.createdDate), 'yyyy-MM-dd kk:mm:ss')} />
+                  <ListItemText
+                    primary={question.question}
+                    secondary={format(new Date(question.createdDate), 'yyyy-MM-dd kk:mm:ss')}
+                  />
                 </ListItem>
               ))}
             </List>
@@ -155,9 +169,8 @@ export default function CommunityDetails() {
       )}
 
       {value === 2 && (
-        <Box p={3}>
-        <Typography variant="h6">{loading ? 'Loading...' : `${articles.length} Articles`}</Typography>
-
+        <Box>
+          <Typography variant="h6">{loading ? 'Loading...' : `${articles.length} Articles`}</Typography>
           {error && <Typography color="error">{error}</Typography>}
           {!loading && !error && (
             <List>
@@ -167,11 +180,14 @@ export default function CommunityDetails() {
                     <InsertDriveFileIcon />
                   </ListItemAvatar>
                   <Box>
-                  <Typography variant="body2" dangerouslySetInnerHTML={{ __html: article.title }} />
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography
+                      variant="body2"
+                      dangerouslySetInnerHTML={{ __html: article.title }}
+                    />
                     <Typography variant="body2" color="textSecondary">
-                     userName - {format(new Date(article.createdDate), 'MMMM d, yyyy')}
-                    </Typography></Box></Box>
+                      userName - {format(new Date(article.createdDate), 'MMMM d, yyyy')}
+                    </Typography>
+                  </Box>
                 </ListItem>
               ))}
             </List>

@@ -71,7 +71,7 @@ export default function Articles() {
         </Button>
       </div>
 
-      <h1>Article Labels</h1>
+      <h4>Article Title</h4>
       <ReactQuill
         theme="snow"
         modules={quillModules}
@@ -81,7 +81,7 @@ export default function Articles() {
         style={{ height: "100px" }}
       />
 
-      <h1 style={{ marginTop: "56px" }}>Article Content</h1>
+      <h4 style={{ marginTop: "56px" }}>Article Content</h4>
       <ReactQuill
         theme="snow"
         modules={quillModules}
@@ -93,7 +93,7 @@ export default function Articles() {
 
       <Grid container spacing={2} style={{ marginTop: "56px" }}>
         <Grid item xs={12} md={6}>
-          <h1>Community Tags</h1>
+          <h4>Community Tags</h4>
           <Autocomplete
             multiple
             options={communityData}
@@ -106,7 +106,7 @@ export default function Articles() {
           />
         </Grid>
         <Grid item xs={12} md={6}>
-          <h1>Access</h1>
+          <h4>Access</h4>
           <FormControl component="fieldset">
             <RadioGroup
               row

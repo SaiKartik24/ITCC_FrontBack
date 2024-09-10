@@ -15,6 +15,8 @@ import Posts from './Pages/Users/Posts';
 import Articles from './Pages/Users/Articles';
 import PostQuestions from './Pages/Users/PostQuestions';
 import ViewArticle from './Pages/Users/ViewArticle';
+import Profile from './Pages/Users/Profile';
+import Requests from './Pages/Admin/Requests';
 export default function App() {
   
   return (
@@ -34,6 +36,9 @@ export default function App() {
           <Route path="articles" element={<Articles/>} />
           <Route path="PostQuestions" element={<PostQuestions/>} />
           <Route path="viewArticle" element={<ViewArticle/>} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="requests" element={<Requests />} />
+          
         </Route>
       </Routes>
     </Router>

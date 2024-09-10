@@ -12,6 +12,7 @@ import PostQuestions from './PostQuestions';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { green, grey, red, yellow } from '@mui/material/colors';
 
 const CustomDialog = styled(Dialog)({
     '& .MuiPaper-root': {
@@ -143,8 +144,8 @@ export default function Users() {
         fetchData();
     }, []);
 
-    const publicQuestionClick = (ques) => {
-        navigate('/user-post', { state: { ques } });
+    const publicQuestionClick = (ques, question) => {
+        navigate('/user-post', { state: { ques, question } });
     };
     const viewArticleClick = (article) => {
         navigate('/viewArticle', { articleData: { article } })
@@ -185,8 +186,32 @@ export default function Users() {
                                             <QuestionAnswerIcon />
                                         </Badge>
                                     </ListItemAvatar>
-                                    <ListItemText style={{ cursor: 'pointer' }} primary={question.question} secondary={format(new Date(question.createdDate), 'MMMM d, yyyy')}
-                                         />
+                                    <ListItemText
+                                        primary={question.question}
+                                        secondary={
+                                            <Box display="flex" justifyContent="space-between" alignItems="center">
+                                                <Typography variant="body2" color="textSecondary">
+                                                    {format(new Date(question.createdDate), 'MMMM d, yyyy')}
+                                                </Typography>
+                                                <Typography
+                                                    variant="body2"
+                                                    sx={{
+                                                        fontWeight: 'bold',
+                                                        ml: 2,
+                                                        color:
+                                                            question.status === 'published' ? green[600] :
+                                                                question.status === 'blocked' ? red[500] :
+                                                                    question.status === 'underReview' ? yellow[700] :
+                                                                        grey[600],
+                                                    }}
+                                                >
+                                                    {question.status.charAt(0).toUpperCase() + question.status.slice(1)}
+                                                </Typography>
+                                            </Box>
+                                        }
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => publicQuestionClick(question._id)}
+                                    />
                                 </ListItem>
                             ))}
                         </List>
@@ -203,7 +228,8 @@ export default function Users() {
                                             <QuestionAnswerIcon />
                                         </Badge>
                                     </ListItemAvatar>
-                                    <ListItemText primary={answer.answer} secondary={format(new Date(answer.createdDate), 'MMMM d, yyyy')} />
+                                    <ListItemText primary={answer.answer} secondary={format(new Date(answer.createdDate), 'MMMM d, yyyy')}
+                                    />
                                 </ListItem>
                             ))}
                         </List>
@@ -211,7 +237,7 @@ export default function Users() {
                 )}
                 {value === 2 && (
                     <Box p={3}>
-                        <b>{articles.length} Articles</b>
+                        <b>{articles.length} Posts</b>
                         <List>
                             {articles.map((article, index) => (
                                 <ListItem key={index}>
@@ -220,12 +246,14 @@ export default function Users() {
                                             <QuestionAnswerIcon />
                                         </Badge>
                                     </ListItemAvatar>
-
                                     <Box>
-                                        <Typography style={{ cursor: 'pointer' }} variant="body2" dangerouslySetInnerHTML={{ __html: article.title }} onClick={() => viewArticleClick(article)} />
+                                        <Typography style={{
+                                            cursor: 'pointer', fontSize: '16px',
+                                            lineHeight: '1.5',
+                                        }} variant="body2" dangerouslySetInnerHTML={{ __html: article.title }} onClick={() => viewArticleClick(article)} />
                                         <Box display="flex" justifyContent="space-between" alignItems="center">
                                             <Typography variant="body2" color="textSecondary">
-                                                {format(new Date(article.createdDate), 'MMMM d, yyyy')}
+                                                {article.userName}   {format(new Date(article.createdDate), 'MMMM d, yyyy')}
                                             </Typography></Box></Box>
                                 </ListItem>
                             ))}
@@ -244,10 +272,13 @@ export default function Users() {
                                         </Badge>
                                     </ListItemAvatar>
                                     <Box>
-                                        <Typography style={{ cursor: 'pointer' }} variant="body2" dangerouslySetInnerHTML={{ __html: ques.question }} onClick={() => publicQuestionClick(ques._id)}/>
+                                        <Typography style={{
+                                            cursor: 'pointer', fontSize: '16px',
+                                            lineHeight: '1.5',
+                                        }} variant="body2" dangerouslySetInnerHTML={{ __html: ques.question }} onClick={() => publicQuestionClick(ques._id)} />
                                         <Box display="flex" justifyContent="space-between" alignItems="center">
                                             <Typography variant="body2" color="textSecondary">
-                                           {ques.userName}     {format(new Date(ques.createdDate), 'MMMM d, yyyy')}
+                                                {ques.userName}     {format(new Date(ques.createdDate), 'MMMM d, yyyy')}
                                             </Typography></Box></Box>
 
                                 </ListItem>

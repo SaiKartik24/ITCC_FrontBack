@@ -28,6 +28,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";  
 import { AuthContext } from '../ServiceHelper/AuthContext';
 import DescriptionIcon from '@mui/icons-material/Description';
+import { Typography } from '@mui/material';
 
 const drawerWidth = 240;
 
@@ -133,12 +134,17 @@ export default function Dashboard() {
           </IconButton>
 
           <Box sx={{ flexGrow: 1 }} />
+          <Typography style={{textAlign:'center'}}>
+          {/* {userToken.userRole.charAt(0).toUpperCase() + userToken.userRole.slice(1)} */}
+          <Typography>
+          {userToken.firstName}
+          </Typography>
+          </Typography>
           <IconButton color="inherit">
             <Badge badgeContent={0} color="error">
               <NotificationsIcon />
             </Badge>
           </IconButton>
-
           <Tooltip title="Account Profile">
             <IconButton
               onClick={handleMenuClick}
@@ -207,6 +213,17 @@ export default function Dashboard() {
                 <GroupIcon />
               </ListItemIcon>
               <ListItemText primary="Community" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={() => navigate('/requests')}
+              sx={getActiveStyle('/requests')}
+            >
+              <ListItemIcon>
+                <GroupIcon />
+              </ListItemIcon>
+              <ListItemText primary="User Requests" />
             </ListItemButton>
           </ListItem>
         </List>}
@@ -280,8 +297,8 @@ export default function Dashboard() {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem>
-          <Avatar /> Profile
+        <MenuItem    onClick={() => navigate('/profile')}>
+          <Avatar  /> Profile
         </MenuItem>
         <MenuItem onClick={logoutAccount}>
           <ListItemIcon>
