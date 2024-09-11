@@ -17,6 +17,7 @@ import PostQuestions from './Pages/Users/PostQuestions';
 import ViewArticle from './Pages/Users/ViewArticle';
 import Profile from './Pages/Users/Profile';
 import Requests from './Pages/Admin/Requests';
+import ViewQuestion from './Pages/Users/ViewQuestion';
 export default function App() {
   
   return (
@@ -38,7 +39,7 @@ export default function App() {
           <Route path="viewArticle" element={<ViewArticle/>} />
           <Route path="profile" element={<Profile />} />
           <Route path="requests" element={<Requests />} />
-          
+          <Route path="question" element={<ViewQuestion />} />        
         </Route>
       </Routes>
     </Router>

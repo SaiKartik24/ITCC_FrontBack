@@ -7,7 +7,6 @@ function AddCommunities(props) {
         mode: "onTouched",
     });
     const { errors } = formState;
-
     const handleClose = () => {
         props.handleSignupClose();
     };
@@ -100,7 +99,7 @@ function AddCommunities(props) {
                                     helperText={errors.tag?.message}
                                 />
                             </Grid>
-                            <Grid item xs={6}>
+                            <Grid item xs={4}>
                                 <TextField
                                     fullWidth
                                     type="text"
@@ -123,7 +122,7 @@ function AddCommunities(props) {
                                     helperText={errors.value?.message}
                                 />
                             </Grid>
-                            <Grid item xs={12}>
+                            <Grid item xs={8}>
                                 <TextField
                                     fullWidth
                                     type="text"

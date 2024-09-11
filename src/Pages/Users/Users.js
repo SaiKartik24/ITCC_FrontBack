@@ -7,6 +7,7 @@ import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
+import DescriptionIcon from '@mui/icons-material/Close';
 import { styled } from '@mui/system';
 import PostQuestions from './PostQuestions';
 import { jwtDecode } from 'jwt-decode';
@@ -36,6 +37,7 @@ export default function Users() {
     const [signupOpen, setSignupOpen] = useState(false);
     const [open, setOpen] = useState(false);
     const [answers, setAnswers] = useState([]);
+    const [communities, setCommunities] = useState({});
     const [responseData, setResponseData] = useState([]);
     const [answerResponseData, setanswerResponseData] = useState([]);
     const [postResponseData, setpostResponseData] = useState([]);
@@ -66,12 +68,33 @@ export default function Users() {
                 console.error('Error fetching question data:', error);
             }
         };
-
+        async function communities() {
+            try {
+                const communityResponse = await fetch('http://172.17.15.253:3002/lookup/getCommunity', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!communityResponse.ok) {
+                    throw new Error('API request failed');
+                }
+                const communityData = await communityResponse.json();
+                const communityMap = communityData.reduce((acc, community) => {
+                    acc[community.value] = community.label;
+                    return acc;
+                }, {});
+                setCommunities(communityMap);
+            } catch (error) {
+                console.error('Error fetching community data:', error);
+            }
+        }
+        communities();
         fetchData();
     }, []);
 
     useEffect(() => {
-
         const token = localStorage.getItem('token');
         const decoded = jwtDecode(token);
         const fetchData = async () => {
@@ -145,12 +168,29 @@ export default function Users() {
     }, []);
 
     const publicQuestionClick = (ques, question) => {
-        navigate('/user-post', { state: { ques, question } });
+        const questionStatusList = responseData.map((item) => ({
+            question: item.question,
+            status: item.status
+        }));
+        console.log('Question statuses:', questionStatusList);
+        const hasMatchingStatus = questionStatusList.some(
+            (item) => item.status === 'underReview' || item.status === 'approved' || item.status === 'blocked'
+        );
+        if (hasMatchingStatus) {
+            console.log('if');
+            navigate('/question', { state: { ques } });
+        } else {
+            console.log('else');
+            navigate('/user-post', { state: { ques, question } });
+        }
     };
-    const viewArticleClick = (article) => {
-        navigate('/viewArticle', { articleData: { article } })
-    }
 
+    const viewArticleClick = (article) => {
+        navigate('/viewArticle', { state: { articleData: article } });
+    }
+    function truncateText(text, maxLength) {
+        return text.length <= maxLength ? text : text.substring(0, maxLength) + '...';
+    }
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
@@ -190,9 +230,15 @@ export default function Users() {
                                         primary={question.question}
                                         secondary={
                                             <Box display="flex" justifyContent="space-between" alignItems="center">
-                                                <Typography variant="body2" color="textSecondary">
-                                                    {format(new Date(question.createdDate), 'MMMM d, yyyy')}
-                                                </Typography>
+                                                {question.community.map((communityId, index) => (
+                                                    <Typography variant="body2" color="primary">
+                                                        {communities[communityId]}
+                                                        <Typography variant="body2" color="textSecondary">
+                                                            {format(new Date(question.createdDate), 'MMMM d, yyyy')}
+                                                        </Typography>
+                                                    </Typography>
+                                                ))}
+
                                                 <Typography
                                                     variant="body2"
                                                     sx={{
@@ -200,9 +246,10 @@ export default function Users() {
                                                         ml: 2,
                                                         color:
                                                             question.status === 'published' ? green[600] :
-                                                                question.status === 'blocked' ? red[500] :
-                                                                    question.status === 'underReview' ? yellow[700] :
-                                                                        grey[600],
+                                                                question.status === 'approved' ? green[600] :
+                                                                    question.status === 'blocked' ? red[500] :
+                                                                        question.status === 'underReview' ? yellow[700] :
+                                                                            grey[600],
                                                     }}
                                                 >
                                                     {question.status.charAt(0).toUpperCase() + question.status.slice(1)}
@@ -237,7 +284,7 @@ export default function Users() {
                 )}
                 {value === 2 && (
                     <Box p={3}>
-                        <b>{articles.length} Posts</b>
+                        <b>{articles.length} Articles</b>
                         <List>
                             {articles.map((article, index) => (
                                 <ListItem key={index}>
@@ -247,14 +294,21 @@ export default function Users() {
                                         </Badge>
                                     </ListItemAvatar>
                                     <Box>
-                                        <Typography style={{
-                                            cursor: 'pointer', fontSize: '16px',
-                                            lineHeight: '1.5',
-                                        }} variant="body2" dangerouslySetInnerHTML={{ __html: article.title }} onClick={() => viewArticleClick(article)} />
-                                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                                            <Typography variant="body2" color="textSecondary">
-                                                {article.userName}   {format(new Date(article.createdDate), 'MMMM d, yyyy')}
-                                            </Typography></Box></Box>
+                                        <Typography
+                                            style={{ cursor: 'pointer', fontWeight: 'bold' }}
+                                            variant="body2"
+                                            dangerouslySetInnerHTML={{ __html: article.title }}
+                                            onClick={() => viewArticleClick(article)}
+                                        />
+                                        <ListItemText
+                                            primary={<span dangerouslySetInnerHTML={{ __html: truncateText(article.content, 100) }} />}
+                                            secondary={
+                                                <span style={{ marginTop: '4px', display: 'block' }}>
+                                                    {format(new Date(article.createdDate), 'MMMM d, yyyy')}
+                                                </span>
+                                            }
+                                        />
+                                    </Box>
                                 </ListItem>
                             ))}
                         </List>

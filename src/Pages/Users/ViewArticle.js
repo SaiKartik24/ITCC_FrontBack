@@ -1,40 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Chip, Box } from '@mui/material';
-import { jwtDecode } from 'jwt-decode';
+import { Container, Typography, Box, Chip } from '@mui/material';
+import Card from '@mui/material/Card';
 import { useLocation } from 'react-router-dom';
+import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
+import ThumbDownOffAltIcon from '@mui/icons-material/ThumbDownOffAlt';
 
 export default function ViewArticle() {
-    const [responseData, setResponseData] = useState()
-    const [data, setData] = useState({
-        "_id": "",
-        "tittle": "<p>Tittle Connect</p>",
-        "content": "<p><span style=\"color: rgb(26, 30, 35);\">Use radio buttons when the user needs to see all available options. If available options can be collapsed, consider using a&nbsp;because it uses less space.</span></p>",
-        "communityTag": [
-            {
-                "tagName": "#nodejs",
-                "tId": 3
-            },
-            {
-                "tagName": "#reactjs",
-                "tId": 1
-            },
-            {
-                "tagName": "#Reactjs",
-                "tId": 4
-            }
-        ],
-        "shared_count": 0,
-        "isPublished": false,
-        "comments": [],
-        "access": "private",
-        "created_date": ""
-    })
+    const [responseData, setResponseData] = useState(null);
+    const [communities, setCommunities] = useState({});
+    const location = useLocation();
+
     useEffect(() => {
+        const articleData = location.state?.articleData;
+        const articleId = articleData?._id;
+        console.log(articleId._id);
         const token = localStorage.getItem('token');
-        const decoded = jwtDecode(token);
         const fetchData = async () => {
             try {
-                const response = await fetch(`http://172.17.15.253:3002/articles/getArticles/${decoded.userId}`, {
+                const response = await fetch(`http://172.17.15.253:3002/articles/getArticlesById/${articleId}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -45,31 +28,71 @@ export default function ViewArticle() {
                     throw new Error(`Error: ${response.status}`);
                 }
                 const data = await response.json();
-                setResponseData(data.questions);
+                console.log(data.result);
+                setResponseData(Array.isArray(data.result) ? data.result : [data.result]);
             } catch (error) {
-                console.error('Error fetching question data:', error);
+                console.error('Error fetching article data:', error);
             }
         };
         fetchData();
     }, []);
+
+    useEffect(() => {
+        const fetchCommunityData = async () => {
+            try {
+                const communityResponse = await fetch('http://172.17.15.253:3002/lookup/getCommunity', {
+                    method: 'GET',
+                });
+                if (!communityResponse.ok) {
+                    throw new Error('API request failed');
+                }
+                const communityData = await communityResponse.json();
+                const communityMap = communityData.reduce((acc, community) => {
+                    acc[community.value] = community.label;
+                    return acc;
+                }, {});
+                setCommunities(communityMap);
+            } catch (error) {
+                console.error('Error fetching community data:', error);
+            }
+        };
+        fetchCommunityData();
+    }, []);
     return (
-        <Container>
-            <Typography variant="h4" gutterBottom dangerouslySetInnerHTML={{ __html: data.tittle }} />
-            <Box sx={{ my: 2 }}>
-                <Typography variant="body1" dangerouslySetInnerHTML={{ __html: data.content }} />
-            </Box>
-            <Box sx={{ my: 2 }}>
-                <Typography variant="h6">Tags:</Typography>
-                {data.communityTag.map((tag) => (
-                    <Chip key={tag.tId} label={tag.tagName} sx={{ mr: 1, mb: 1 }} />
+        <Container >
+            <Card style={{ padding: '25px', borderRadius: '10px', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px' }}>
+                {responseData && responseData?.map((article, index) => (
+                    <Box key={index} sx={{ mb: 4 }}>
+                        <Typography variant="h4" gutterBottom dangerouslySetInnerHTML={{ __html: article.title }} />
+                        <Box sx={{ my: 2 }}>
+                            <Typography variant="body1" dangerouslySetInnerHTML={{ __html: article.content }} />
+                        </Box>
+                        <Box sx={{ my: 2 }}>
+                            <Typography variant="h6"><b>Tags</b></Typography>
+                            {article.community.map((communityId, index) => (
+                                <Chip
+                                    key={index}
+                                    label={communities[communityId] || 'Unknown Community'}
+                                    style={{ marginRight: '5px', backgroundColor: '#2196f3', color: 'white', marginTop: '20px', fontSize: '11px', height: '25px' }}
+                                />
+                            ))}
+                        </Box>
+                        <Box sx={{ my: 2 }}>
+
+                            <Typography variant="body2" style={{ display: 'flex', justifyContent: 'end' }}>
+                                <b>Created Date: &nbsp;</b> {new Date(article.createdDate).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                })}
+                            </Typography><br></br>
+                            <div style={{ display: 'flex', justifyContent: 'end', cursor: 'pointer' }}>
+                                <ThumbUpOffAltIcon />&nbsp;<ThumbDownOffAltIcon />
+                            </div>
+                        </Box>
+                    </Box>
                 ))}
-            </Box>
-            <Box sx={{ my: 2 }}>
-                <Typography variant="body2">Shared Count: {data.shared_count}</Typography>
-                <Typography variant="body2">Published: {data.isPublished ? "Yes" : "No"}</Typography>
-                <Typography variant="body2">Access: {data.access}</Typography>
-                <Typography variant="body2">Created Date: {data.created_date ? data.created_date : "N/A"}</Typography>
-            </Box>
+            </Card>
         </Container>
     );
-};
+}
