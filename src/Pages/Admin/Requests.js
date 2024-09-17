@@ -1,27 +1,75 @@
 import { Box, Button, Dialog, DialogContent, DialogContentText, DialogTitle, List, ListItem, ListItemAvatar, Tab, Tabs, Typography, useMediaQuery } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { DialogActions } from '@material-ui/core';
 import { useTheme } from '@emotion/react';
+import { AuthContext } from '../../ServiceHelper/AuthContext';
+import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 export default function Requests() {
     const [tabValue, setTabValue] = useState('question');
+    const { token } = useContext(AuthContext);
+    const [question, setQuestion] = useState([])
     const [open, setOpen] = React.useState(false);
-    const theme = useTheme();
+    const[article,setArticle]=useState([])
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
     };
+    const navigate = useNavigate();
 
-    const handleClickOpen = () => {
-        setOpen(true);
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const fetchData = async () => {
+            try {
+                const response = await fetch(`http://172.17.15.253:3002/questions/getUnderReviewQuestions`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log(data.questions);
+                setQuestion(data.questions)
+            } catch (error) {
+                console.error('Error fetching question data:', error);
+            }
+        };
+
+
+        const getArticle = async () => {
+            try {
+                const response = await fetch(`http://172.17.15.253:3002/articles/getUnderReviewArticles`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                const data = await response.json();
+                setArticle(data.articles)
+            } catch (error) {
+                console.error('Error fetching question data:', error);
+            }
+        };
+        fetchData();
+        getArticle();
+    }, []);
+
+    const handleClickOpen = (ques) => {
+        navigate('/question', { state: { ques } });
     };
-
-    const handleClose = () => {
-        setOpen(false);
-    };
-
-
+    const handleClickArticle =(article)=>{
+        navigate('/viewArticle', { state: { articleData: article } });
+    }
     return (
         <div>
             <Box my={4}>
@@ -37,27 +85,33 @@ export default function Requests() {
                 {tabValue === 'question' && (
                     <Box p={2}>
                         <List>
-                            {/* {articles.map((article, index) => ( */}
-                            <ListItem >
-                                <ListItemAvatar>
-                                    <InsertDriveFileIcon />
-                                </ListItemAvatar>
-                                <Box>
-                                    {/* <Typography variant="body2" dangerouslySetInnerHTML={{ __html: szedcsdcsddvdvgd}} /> */}
-                                    <Typography variant="body2">Long labels will automatically wrap on tabs. If the label is too long for the tab, it will overflow, and the text will not be visible.</Typography>
+                            {question.map((data, index) => (
+                                <ListItem >
+                                    <ListItemAvatar>
+                                        <InsertDriveFileIcon />
+                                    </ListItemAvatar>
+                                    <Box>
+                                        <Typography variant="body2" dangerouslySetInnerHTML={{ __html: data.question }} />
+                                        <Box display="flex" justifyContent="space-between" alignItems="center">
+                                            <Typography variant="body2" color="textSecondary">
+                                                {data.userName} - {format(new Date(data.createdDate), 'MMMM d, yyyy')}
+                                                {/* <Typography variant="body2" color="textSecondary" style={{ color: 'red', cursor: 'pointer' }} onClick={handleClickOpen(data._id)}>
+                                                    Request
+                                                </Typography> */}
 
-                                    <Box display="flex" justifyContent="space-between" alignItems="center">
-                                        <Typography variant="body2" color="textSecondary">
-                                            {/* userName - {format(new Date(article.createdDate), 'MMMM d, yyyy')} */}
-                                            userName -
-                                            <Typography variant="body2" color="textSecondary" style={{ color: 'red', cursor: 'pointer' }} onClick={handleClickOpen}>
-                                                Request
+                                                <Typography
+                                                    variant="body2"
+                                                    color="textSecondary"
+                                                    style={{ color: 'red', cursor: 'pointer' }}
+                                                    onClick={() => handleClickOpen(data._id)}
+                                                >
+                                                 {data.status}  - Request
+                                                </Typography>
                                             </Typography>
-                                        </Typography>
-                                    </Box></Box>
+                                        </Box></Box>
 
-                            </ListItem>
-                            {/* ))} */}
+                                </ListItem>
+                            ))}
                         </List>
                     </Box>
 
@@ -67,56 +121,29 @@ export default function Requests() {
 
                     <Box p={2}>
                         <List>
-                            {/* {articles.map((article, index) => ( */}
+                            {article.map((data, index) => (
                             <ListItem >
                                 <ListItemAvatar>
                                     <InsertDriveFileIcon />
                                 </ListItemAvatar>
                                 <Box>
-                                    {/* <Typography variant="body2" dangerouslySetInnerHTML={{ __html: szedcsdcsddvdvgd}} /> */}
-                                    <Typography variant="body2"  >@mui/lab offers utility components that inject props to implement accessible tabs following WAI-ARIA Authoring</Typography>
-
+                                    <Typography variant="body2" dangerouslySetInnerHTML={{ __html:data.title }} />
                                     <Box display="flex" justifyContent="space-between" alignItems="center">
                                         <Typography variant="body2" color="textSecondary">
-                                            {/* userName - {format(new Date(article.createdDate), 'MMMM d, yyyy')} */}
-                                            userName -
-                                            <Typography variant="body2" color="textSecondary" style={{ color: 'red', cursor: 'pointer' }}>
+                                            {data.userName} - {format(new Date(data.createdDate), 'MMMM d, yyyy')}
+                                            <Typography variant="body2" color="textSecondary" style={{ color: 'red', cursor: 'pointer' }}
+                                              onClick={() => handleClickArticle(data)}>
                                                 Request
                                             </Typography>
                                         </Typography></Box></Box>
 
                             </ListItem>
-                            {/* ))} */}
+                             ))}
                         </List>
                     </Box>
                 )}
             </Box>
 
-
-            <Dialog
-                // fullScreen={fullScreen}
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="responsive-dialog-title"
-            >
-                <DialogTitle id="responsive-dialog-title">
-                    {"Use Google's location service?"}
-                </DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Let Google help apps determine location. This means sending anonymous
-                        location data to Google, even when no apps are running.
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button autoFocus onClick={handleClose}>
-                        Reject
-                    </Button>
-                    <Button onClick={handleClose} autoFocus>
-                        Aprove
-                    </Button>
-                </DialogActions>
-            </Dialog>
 
 
 

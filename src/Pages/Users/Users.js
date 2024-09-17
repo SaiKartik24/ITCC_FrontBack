@@ -7,6 +7,7 @@ import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
+import DescriptionIcon from '@mui/icons-material/Close';
 import { styled } from '@mui/system';
 import PostQuestions from './PostQuestions';
 import { jwtDecode } from 'jwt-decode';
@@ -35,21 +36,41 @@ export default function Users() {
     const [value, setValue] = useState(0);
     const [signupOpen, setSignupOpen] = useState(false);
     const [open, setOpen] = useState(false);
+    const [answers, setAnswers] = useState([]);
     const [communities, setCommunities] = useState({});
     const [responseData, setResponseData] = useState([]);
-    const [answerResponseData, setAnswerResponseData] = useState([]);
-    const [postResponseData, setPostResponseData] = useState([]);
+    const [answerResponseData, setanswerResponseData] = useState([]);
+    const [postResponseData, setpostResponseData] = useState([]);
     const [articles, setArticles] = useState([]);
-    const [searchValue, setSearchValue] = useState('');
-    const [filteredData, setFilteredData] = useState([]);
     const handleChange = (event, newValue) => { setValue(newValue) };
     const handleSignupClose = () => setSignupOpen(false);
-    const handleSignupOpen = () => setSignupOpen(true);
-    const [subValue, setSubValue] = useState(0);
-    const navigate = useNavigate();
 
+    const handleSignupOpen = () => setSignupOpen(true);
+    const navigate = useNavigate();
+    const token = localStorage.getItem('token');
+    let decoded = jwtDecode(token);
+    console.log(decoded);
     useEffect(() => {
-        const token = localStorage.getItem('token');
+  
+        
+        const fetchData = async () => {
+            try {
+                const response = await fetch(`http://172.17.15.253:3002/questions/getQuestionByUserId/${decoded.userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                const data = await response.json();
+                setResponseData(data.questions);
+            } catch (error) {
+                console.error('Error fetching question data:', error);
+            }
+        };
         async function communities() {
             try {
                 const communityResponse = await fetch('http://172.17.15.253:3002/lookup/getCommunity', {
@@ -73,15 +94,41 @@ export default function Users() {
             }
         }
         communities();
+        fetchData();
     }, []);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        if (!token) return;
         const decoded = jwtDecode(token);
-        const fetchData = async (url, setter) => {
+        const fetchData = async () => {
             try {
-                const response = await fetch(url, {
+                const response = await fetch(`http://172.17.15.253:3002/articles/getArticles/${decoded.userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch users');
+                }
+                const data = await response.json();
+                setArticles(data.article || []);
+                console.log(data.article);
+
+            } catch (error) {
+                console.error('Error fetching question data:', error);
+            }
+        };
+        fetchData();
+    }, []);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const decoded = jwtDecode(token);
+        const fetchData = async () => {
+            try {
+                const response = await fetch(`http://172.17.15.253:3002/answers/getAnswersByUserId/${decoded.userId}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -92,98 +139,56 @@ export default function Users() {
                     throw new Error(`Error: ${response.status}`);
                 }
                 const data = await response.json();
-                setter(data);
+                setanswerResponseData(data.answers);
             } catch (error) {
-                console.error(`Error fetching data from ${url}:`, error);
+                console.error('Error fetching question data:', error);
             }
         };
-        const fetchTabData = () => {
-            const page = 1;
-            const limit = 50;
-            if (value === 0) {
-                fetchData(
-                    `http://172.17.15.253:3002/questions/getQuestionByUserId/${decoded.userId}?page=${page}&limit=${limit}`,
-                    (data) => setResponseData(data.questions)
-                );
-            } else if (value === 1) {
-                fetchData(
-                    `http://172.17.15.253:3002/answers/getAnswersByUserId/${decoded.userId}?page=${page}&limit=${limit}`,
-                    (data) => setAnswerResponseData(data.answers)
-                );
-            } else if (value === 2) {
-                fetchData(
-                    `http://172.17.15.253:3002/articles/getArticles/${decoded.userId}?page=${page}&limit=${limit}`,
-                    (data) => setArticles(data.article)
-
-                );
-                console.log(articles);
-            } else if (value === 3) {
-                fetchData(
-                    `http://172.17.15.253:3002/questions?page=${page}&limit=${limit}`,
-                    (data) => setPostResponseData(data.questions)
-                );
-            }
-        };
-        fetchTabData();
-    }, [value]);
+        fetchData();
+    }, []);
     useEffect(() => {
-        if (searchValue.trim()) {
-            let filtered = [];
-            if (value === 0) {
-                filtered = responseData.filter((question) =>
-                    question.question.toLowerCase().includes(searchValue.toLowerCase())
-                );
-            } else if (value === 1) {
-                filtered = answerResponseData.filter((answer) =>
-                    answer.answer.toLowerCase().includes(searchValue.toLowerCase())
-                );
-            } else if (value === 2) {
-                console.log('value2', articles);
-                filtered = articles.filter((article1) =>
-                    article1.title.toLowerCase().includes(searchValue.toLowerCase())
-                );
-            } else if (value === 3) {
-                console.log('value3');
-                filtered = postResponseData.filter((post) =>
-                    post.question.toLowerCase().includes(searchValue.toLowerCase())
-                );
+        const token = localStorage.getItem('token');
+        const fetchData = async () => {
+            try {
+                const response = await fetch(` http://172.17.15.253:3002/questions`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log(data);
+                setpostResponseData(data.questions)
+            } catch (error) {
+                console.error('Error fetching question data:', error);
             }
-            setFilteredData(filtered);
-        } else {
-            if (value === 0) setFilteredData(responseData);
-            if (value === 1) setFilteredData(answerResponseData);
-            if (value === 2) setFilteredData(articles);
-            if (value === 3) setFilteredData(postResponseData);
-        }
-    }, [searchValue, responseData, answerResponseData, articles, postResponseData, value]);
+        };
+        fetchData();
+    }, []);
 
-
-    const handleKeyUp = (event) => {
-        if (event.key === 'Enter') {
-            search();
-        }
-    };
-    const search = () => {
-        setSearchValue(searchValue.trim());
-    };
-    const handleSubChange = () => {
-
-    }
     const publicQuestionClick = (ques, question) => {
-        const questionStatusList = responseData.map((item) => ({
-            question: item.question,
-            status: item.status
-        }));
-        console.log('Question statuses:', questionStatusList);
-        const hasMatchingStatus = questionStatusList.some(
-            (item) => item.status === 'underReview' || item.status === 'approved' || item.status === 'blocked'
-        );
-        if (hasMatchingStatus) {
-            console.log('if');
-            navigate('/question', { state: { ques } });
-        } else {
-            console.log('else');
+
+        if (!responseData || responseData.length === 0) {
+            console.error('No response data available');
+            return;
+        }
+
+        console.log(responseData);
+
+        const normalizedStatuses = responseData.filter(item => item._id === ques)[0].status
+
+        console.log('Normalized question statuses:', normalizedStatuses);
+
+        if (normalizedStatuses === 'approved') {
+            console.log('Navigating to post screen...');
             navigate('/user-post', { state: { ques, question } });
+        } else {
+            console.log('Navigating to view question screen...');
+            navigate('/question', { state: { ques } });
         }
     };
 
@@ -204,9 +209,6 @@ export default function Users() {
                         sx={{ ml: 1, flex: 1 }}
                         placeholder="Search here....."
                         inputProps={{ 'aria-label': 'search' }}
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        onKeyUp={handleKeyUp}
                     />
                     <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
                         <SearchIcon />
@@ -222,9 +224,9 @@ export default function Users() {
                 </Tabs>
                 {value === 0 && (
                     <Box p={3}>
-                        <b>{filteredData.length} Questions</b>
+                        <b>{responseData.length} Questions</b>
                         <List>
-                            {filteredData.map((question, index) => (
+                            {responseData.map((question, index) => (
                                 <ListItem key={index}>
                                     <ListItemAvatar>
                                         <Badge color="primary">
@@ -253,7 +255,7 @@ export default function Users() {
                                                             question.status === 'published' ? green[600] :
                                                                 question.status === 'approved' ? green[600] :
                                                                     question.status === 'blocked' ? red[500] :
-                                                                        question.status === 'underReview' ? yellow[700] :
+                                                                        question.status === 'Under Review' ? yellow[700] :
                                                                             grey[600],
                                                     }}
                                                 >
@@ -271,9 +273,9 @@ export default function Users() {
                 )}
                 {value === 1 && (
                     <Box p={3}>
-                        <b>{filteredData.length} Answers</b>
+                        <b>{answerResponseData.length} Answers</b>
                         <List>
-                            {filteredData.map((answer, index) => (
+                            {answerResponseData.map((answer, index) => (
                                 <ListItem key={index}>
                                     <ListItemAvatar>
                                         <Badge badgeContent={answer.votes} color="primary">
@@ -319,11 +321,11 @@ export default function Users() {
                         </List>
                     </Box>
                 )}
-                {/* {value === 3 && (
+                {value === 3 && (
                     <Box p={3}>
-                        <b>{filteredData.length} Posts</b>
+                        <b>{postResponseData.length} Posts</b>
                         <List>
-                            {filteredData.map((ques, index) => (
+                            {postResponseData.map((ques, index) => (
                                 <ListItem key={index}>
                                     <ListItemAvatar>
                                         <Badge color="primary">
@@ -344,29 +346,7 @@ export default function Users() {
                             ))}
                         </List>
                     </Box>
-                )} */}
-                {value === 3 && (
-                    <Box>
-                        <Typography></Typography>
-                        <Tabs value={subValue} onChange={handleSubChange} aria-label="sub tabs under All Posts">
-                            <Tab label="All Questions" value={0} />
-                            <Tab label="All Articles" value={1} />
-                        </Tabs>
-
-                        {subValue === 0 && (
-                            <Box p={3}>
-                                <b>{filteredData.length} All Questions</b>
-                            </Box>
-                        )}
-
-                        {subValue === 1 && (
-                            <Box p={3}>
-                                <b>{filteredData.length} All Articles</b>
-                            </Box>
-                        )}
-                    </Box>
                 )}
-
             </Box>
             <CustomDialog
                 open={open}
