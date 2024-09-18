@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
     Box, Tabs, Tab, Typography, IconButton, ListItem, ListItemText, List,
-    Badge, Fab, Button, Paper, InputBase, Dialog, DialogActions, DialogContent, DialogTitle, TextField, ListItemAvatar
+    Badge, Fab, Button, Paper, InputBase, Dialog, DialogActions, DialogContent, DialogTitle, TextField, ListItemAvatar,
+    Pagination
 } from '@mui/material';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
-import DescriptionIcon from '@mui/icons-material/Close';
 import { styled } from '@mui/system';
 import PostQuestions from './PostQuestions';
 import { jwtDecode } from 'jwt-decode';
@@ -36,26 +36,37 @@ export default function Users() {
     const [value, setValue] = useState(0);
     const [signupOpen, setSignupOpen] = useState(false);
     const [open, setOpen] = useState(false);
-    const [answers, setAnswers] = useState([]);
     const [communities, setCommunities] = useState({});
     const [responseData, setResponseData] = useState([]);
     const [answerResponseData, setanswerResponseData] = useState([]);
     const [postResponseData, setpostResponseData] = useState([]);
     const [articles, setArticles] = useState([]);
+
+    // const [questionsPage, setQuestionsPage] = useState(1);
+
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalPagesAws, setTotalPagesAws] = useState(0);
+    const [totalPagesArt, setTotalPagesArt] = useState(0);
+    const [totalPagesAllPost, setTotalPagesAllPost] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [answersPage, setAnswersPage] = useState(1);
+    const [articlesPage, setArticlesPage] = useState(1);
+    const [postsPage, setPostsPage] = useState(1);
+
+
     const handleChange = (event, newValue) => { setValue(newValue) };
     const handleSignupClose = () => setSignupOpen(false);
-
     const handleSignupOpen = () => setSignupOpen(true);
+
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
     let decoded = jwtDecode(token);
     console.log(decoded);
     useEffect(() => {
-  
-        
-        const fetchData = async () => {
+
+        const fetchData = async (page) => {
             try {
-                const response = await fetch(`http://172.17.15.253:3002/questions/getQuestionByUserId/${decoded.userId}`, {
+                const response = await fetch(`http://172.17.15.253:3002/questions/getQuestionByUserId/${decoded.userId}?page=${page}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -66,7 +77,8 @@ export default function Users() {
                     throw new Error(`Error: ${response.status}`);
                 }
                 const data = await response.json();
-                setResponseData(data.questions);
+                setResponseData(data.questions || []);
+                setTotalPages(Math.ceil(data.pages.total / data.pages.limit) || 0); // Calculate total pages
             } catch (error) {
                 console.error('Error fetching question data:', error);
             }
@@ -94,15 +106,15 @@ export default function Users() {
             }
         }
         communities();
-        fetchData();
-    }, []);
+        fetchData(currentPage);
+    }, [currentPage]);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
         const decoded = jwtDecode(token);
         const fetchData = async () => {
             try {
-                const response = await fetch(`http://172.17.15.253:3002/articles/getArticles/${decoded.userId}`, {
+                const response = await fetch(`http://172.17.15.253:3002/articles/getArticles/${decoded.userId}?page=${articlesPage}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -115,20 +127,20 @@ export default function Users() {
                 const data = await response.json();
                 setArticles(data.article || []);
                 console.log(data.article);
-
+                setTotalPagesArt(Math.ceil(data.pages.total / data.pages.limit) || 0);
             } catch (error) {
                 console.error('Error fetching question data:', error);
             }
         };
         fetchData();
-    }, []);
+    }, [articlesPage]);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
         const decoded = jwtDecode(token);
         const fetchData = async () => {
             try {
-                const response = await fetch(`http://172.17.15.253:3002/answers/getAnswersByUserId/${decoded.userId}`, {
+                const response = await fetch(`http://172.17.15.253:3002/answers/getAnswersByUserId/${decoded.userId}?page=${answersPage}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -140,17 +152,18 @@ export default function Users() {
                 }
                 const data = await response.json();
                 setanswerResponseData(data.answers);
+                setTotalPagesAws(Math.ceil(data.pages.total / data.pages.limit) || 0);
             } catch (error) {
                 console.error('Error fetching question data:', error);
             }
         };
         fetchData();
-    }, []);
+    }, [answersPage]);
     useEffect(() => {
         const token = localStorage.getItem('token');
         const fetchData = async () => {
             try {
-                const response = await fetch(` http://172.17.15.253:3002/questions`, {
+                const response = await fetch(` http://172.17.15.253:3002/questions?page=${postsPage}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -163,12 +176,13 @@ export default function Users() {
                 const data = await response.json();
                 console.log(data);
                 setpostResponseData(data.questions)
+                setTotalPagesAllPost(Math.ceil(data.total / data.limit) || 0);
             } catch (error) {
                 console.error('Error fetching question data:', error);
             }
         };
         fetchData();
-    }, []);
+    }, [postsPage]);
 
     const publicQuestionClick = (ques, question) => {
 
@@ -198,6 +212,7 @@ export default function Users() {
     function truncateText(text, maxLength) {
         return text.length <= maxLength ? text : text.substring(0, maxLength) + '...';
     }
+    const handlePageChange = (event, page) => setCurrentPage(page);
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
@@ -269,6 +284,13 @@ export default function Users() {
                                 </ListItem>
                             ))}
                         </List>
+                        <Box display="flex" justifyContent="center" mt={2}>
+                        <Pagination 
+                                count={totalPages} 
+                                page={currentPage} 
+                                onChange={handlePageChange} 
+                                color="primary"
+                            /></Box>
                     </Box>
                 )}
                 {value === 1 && (
@@ -287,6 +309,13 @@ export default function Users() {
                                 </ListItem>
                             ))}
                         </List>
+                        <Box display="flex" justifyContent="center" mt={2}>
+                        <Pagination
+                            count={totalPagesAws}
+                            page={answersPage}
+                            onChange={(e, page) => setAnswersPage(page)}
+                            color="primary"
+                        /></Box>
                     </Box>
                 )}
                 {value === 2 && (
@@ -319,6 +348,13 @@ export default function Users() {
                                 </ListItem>
                             ))}
                         </List>
+                        <Box display="flex" justifyContent="center" mt={2}>
+                        <Pagination
+                            count={totalPagesArt}
+                            page={articlesPage}
+                            onChange={(e, page) => setArticlesPage(page)}
+                            color="primary"
+                        /></Box>
                     </Box>
                 )}
                 {value === 3 && (
@@ -345,6 +381,13 @@ export default function Users() {
                                 </ListItem>
                             ))}
                         </List>
+                        <Box display="flex" justifyContent="center" mt={2}>
+                        <Pagination
+                            count={totalPagesAllPost}
+                            page={postsPage}
+                            onChange={(e, page) => setPostsPage(page)}
+                            color="primary"
+                        /></Box>
                     </Box>
                 )}
             </Box>

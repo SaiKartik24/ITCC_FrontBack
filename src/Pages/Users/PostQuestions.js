@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import ReactQuill from 'react-quill';
 import 'quill/dist/quill.snow.css';
-import { Box, Button, TextField, Chip, Paper, List, ListItem, InputAdornment, Dialog, DialogTitle, Typography, DialogContent } from '@mui/material';
+import { Box, Button, TextField, Chip, Paper, List, ListItem, InputAdornment, Dialog, DialogTitle, Typography, DialogContent, Alert } from '@mui/material';
 import useGet from '../../ServiceHelper/Api/useGet';
 import usePost from "../../ServiceHelper/Api/usePost";
 import { useForm } from "react-hook-form";
@@ -23,6 +23,7 @@ export default function PostQuestions(props) {
   const [postUrl, setPostUrl] = useState("");
   const [triggerPost, setTriggerPost] = useState(false);
   const { response, error } = usePost(postUrl, postData, triggerPost);
+  const [showAlert, setShowAlert] = useState(false); 
 
   const handleClose = () => {
     props.handleSignupClose();
@@ -58,6 +59,11 @@ export default function PostQuestions(props) {
     }
     if (response) {
       console.log('Post response:', response);
+      setShowAlert(true);  
+      setTimeout(() => {
+        setShowAlert(false);  
+        handleClose();  
+      }, 3000);
     }
     if (error) {
       console.error('Post error:', error);
@@ -190,6 +196,11 @@ export default function PostQuestions(props) {
             <Box mt={3} display="flex" justifyContent="flex-start">
               <Button type="submit" variant="contained">Post your Question</Button>
             </Box>
+            {showAlert && (
+              <Alert severity="success" style={{ marginTop: '1rem' }}>
+                Question posted successfully!
+              </Alert>
+            )}
           </Box>
         </form>
       </DialogContent>

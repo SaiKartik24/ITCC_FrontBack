@@ -246,7 +246,7 @@ export default function Dashboard() {
               <ListItemText primary="Articles" />
             </ListItemButton>
           </ListItem>
-          <ListItem disablePadding>
+          {/* <ListItem disablePadding>
             <ListItemButton
               onClick={() => navigate('/admin-community')}
               sx={getActiveStyle('/admin-community')}
@@ -256,7 +256,7 @@ export default function Dashboard() {
               </ListItemIcon>
               <ListItemText primary="Community" />
             </ListItemButton>
-          </ListItem>
+          </ListItem> */}
         </List>} 
       </Drawer>
       <Main open={open}>
