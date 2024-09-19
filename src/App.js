@@ -1,6 +1,5 @@
 import React from 'react';
-import { BrowserRouter  as Router, Routes, Route } from 'react-router-dom';
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './Pages/Authentication/Login';
 import Registration from './Pages/Authentication/Registration';
 import Dashboard from './Pages/Dashboard';
@@ -18,30 +17,35 @@ import ViewArticle from './Pages/Users/ViewArticle';
 import Profile from './Pages/Users/Profile';
 import Requests from './Pages/Admin/Requests';
 import ViewQuestion from './Pages/Users/ViewQuestion';
+import Loader from './Pages/Loader';
+import { useLoader } from './ServiceHelper/LoaderContext';
 export default function App() {
-  
+  const { loading } = useLoader();
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/registration" element={<Registration />} />
-        <Route path="*" element={<Dashboard />}>
-          <Route path="admin" element={<Admin />} />
-          <Route path="admin-dashboard" element={<AdminDashboard />} />
-          <Route path="admin-community" element={<Communities />} />
-          <Route path="users-list" element={<UserList />} />
-          <Route path="users-details" element={<UserDetails />} />
-          <Route path="community-details" element={<CommunityDetails/>} />
-          <Route path="user-dashboard" element={<Users/>} />
-          <Route path="user-post" element={<Posts/>} />
-          <Route path="articles" element={<Articles/>} />
-          <Route path="PostQuestions" element={<PostQuestions/>} />
-          <Route path="viewArticle" element={<ViewArticle/>} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="requests" element={<Requests />} />
-          <Route path="question" element={<ViewQuestion />} />        
-        </Route>
-      </Routes>
-    </Router>
+    <>
+      {loading && <Loader />}
+      <Router>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/registration" element={<Registration />} />
+          <Route path="*" element={<Dashboard />}>
+            <Route path="admin" element={<Admin />} />
+            <Route path="admin-dashboard" element={<AdminDashboard />} />
+            <Route path="admin-community" element={<Communities />} />
+            <Route path="users-list" element={<UserList />} />
+            <Route path="users-details" element={<UserDetails />} />
+            <Route path="community-details" element={<CommunityDetails />} />
+            <Route path="user-dashboard" element={<Users />} />
+            <Route path="user-post" element={<Posts />} />
+            <Route path="articles" element={<Articles />} />
+            <Route path="PostQuestions" element={<PostQuestions />} />
+            <Route path="viewArticle" element={<ViewArticle />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="requests" element={<Requests />} />
+            <Route path="question" element={<ViewQuestion />} />
+          </Route>
+        </Routes>
+      </Router>
+    </>
   );
 }
