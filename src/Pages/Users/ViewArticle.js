@@ -25,8 +25,6 @@ export default function ViewArticle() {
     const articleData = location.state?.articleData;
     const articleId = articleData?._id;
     useEffect(() => {
-    
-
         const fetchData = async () => {
             try {
                 const response = await fetch(`http://172.17.15.253:3002/articles/getArticlesById/${articleId}`, {
@@ -52,7 +50,7 @@ export default function ViewArticle() {
     useEffect(() => {
         const fetchCommunityData = async () => {
             try {
-                const communityResponse = await fetch('http://172.17.15.253:3002/lookup/getCommunity', {
+                const communityResponse = await fetch('http://172.17.15.253:3002/communityList/getCommunity', {
                     method: 'GET',
                 });
                 if (!communityResponse.ok) {
@@ -60,7 +58,7 @@ export default function ViewArticle() {
                 }
                 const communityData = await communityResponse.json();
                 const communityMap = communityData.reduce((acc, community) => {
-                    acc[community.value] = community.label;
+                    acc[community.communityCode] = community.communityName;
                     return acc;
                 }, {});
                 setCommunities(communityMap);

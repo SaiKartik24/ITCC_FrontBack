@@ -6,9 +6,10 @@ import CommentIcon from '@mui/icons-material/Comment';
 import { format } from 'date-fns';
 import { AuthContext } from '../../ServiceHelper/AuthContext';
 import DOMPurify from 'dompurify';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import ReactQuill from 'react-quill';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const stripHtmlTags = (html) => {
     return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] });
@@ -29,7 +30,7 @@ export default function Posts() {
     const [showQuestionCommentField, setShowQuestionCommentField] = useState(null);
     const [question, setQuestion] = useState([]);
     const [loading, setLoading] = useState(false);
-
+    const navigate = useNavigate();
 
     const location = useLocation();
     const { ques } = location.state || {};
@@ -128,7 +129,7 @@ export default function Posts() {
 
         async function fetchData() {
             try {
-                const communityResponse = await fetch('http://172.17.15.253:3002/lookup/getCommunity', {
+                const communityResponse = await fetch('http://172.17.15.253:3002/communityList/getCommunity', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -140,7 +141,7 @@ export default function Posts() {
                 }
                 const communityData = await communityResponse.json();
                 const communityMap = communityData.reduce((acc, community) => {
-                    acc[community.value] = community.label;
+                    acc[community.communityCode] = community.communityName;
                     return acc;
                 }, {});
                 setCommunities(communityMap);
@@ -167,7 +168,7 @@ export default function Posts() {
                 throw new Error('Failed to fetch question comments');
             }
             const data = await response.json();
-            setLoading(false); 
+            setLoading(false);
             setQuestion(data);
             setGetComments(data.questionComments?.comments || []);
             setAnswers(data.answers);
@@ -284,7 +285,14 @@ export default function Posts() {
 
     return (
         <Container>
-
+            <Box my={3} display="flex" justifyContent="space-between" alignItems="center">
+                <Typography variant="h5">Post Details</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 'bold', ml: 2 }}>
+                    <IconButton type="button" sx={{ p: '1px' }} aria-label="search" color='primary' onClick={() => navigate(-1)}>
+                        <ArrowBackIcon /> Go Back
+                    </IconButton>
+                </Typography>
+            </Box>
             {loading && (
                 <Box
                     display="flex"
@@ -300,12 +308,12 @@ export default function Posts() {
                 </Box>
             )}
 
-
+{/* 
             <Box my={4}>
                 <Typography variant="h4" component="h1" gutterBottom>
                     Posts
                 </Typography>
-            </Box>
+            </Box> */}
 
             <Grid container spacing={3}>
                 <Grid item xs={12}>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import ReactQuill from "react-quill";
 import "quill/dist/quill.snow.css";
@@ -27,18 +28,16 @@ export default function Articles() {
   const token = localStorage.getItem('token');
   const decoded = jwtDecode(token);
 
-  const { data: communityData, loading: communityLoading, error: communityError } = useGet('/communities');
+  const { data: communityData, loading: communityLoading, error: communityError } = useGet('/communityList/getCommunity');
   const [selectedTags, setSelectedTags] = useState([]);
-  const [access, setAccess] = useState("public");
+  const [access, setAccess] = useState("Public");
   const [postArticle, setPostArticle] = useState({
     title: "",
     content: "",
     community: [],
     createdDate: new Date().toISOString(),
-    userId:  decoded.userId || "defaultUserId",
-    status: "draft",
-    likes: [],
-    dislikes: []
+    userId: decoded.userId,
+    access: "Public" 
   });
   const [triggerPost, setTriggerPost] = useState(false);
 
@@ -56,7 +55,11 @@ export default function Articles() {
   };
 
   const savePost = () => {
-    setPostArticle(prev => ({ ...prev, community: selectedTags.map(tag => tag.value) }));
+    setPostArticle(prev => ({ 
+      ...prev, 
+      community: selectedTags.map(tag => tag.communityCode), 
+      access: access
+    }));
     setTriggerPost(true);
   };
 
@@ -97,7 +100,7 @@ export default function Articles() {
           <Autocomplete
             multiple
             options={communityData}
-            getOptionLabel={(option) => option.label}
+            getOptionLabel={(option) => option.communityName}
             filterSelectedOptions
             onChange={(event, newValue) => setSelectedTags(newValue)}
             renderInput={(params) => (
@@ -113,10 +116,10 @@ export default function Articles() {
               aria-label="access"
               name="access"
               value={access}
-              onChange={(event) => handleChange('status')(event.target.value === "public" ? "published" : "draft")}
+              onChange={(event) => setAccess(event.target.value)} 
             >
-              <FormControlLabel value="public" control={<Radio />} label="Public" />
-              <FormControlLabel value="private" control={<Radio />} label="Private" />
+              <FormControlLabel value="Public" control={<Radio />} label="Public" />
+              <FormControlLabel value="Private" control={<Radio />} label="Private" />
             </RadioGroup>
           </FormControl>
         </Grid>

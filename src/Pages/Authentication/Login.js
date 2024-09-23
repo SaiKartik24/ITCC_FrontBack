@@ -65,7 +65,10 @@ const Login = () => {
       backgroundImage: `url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPSwEI15YPKGidtXzXZIxcTJ4IIqZIis5RLdbxLyjq-vZsymS0gp9oQtr0rBkCCXLJjto&usqp=CAU")`,
       height: '100vh'
     }}>
-      <Container maxWidth="md" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+      <Container maxWidth="md" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh',
+         backgroundSize: 'cover',  backgroundImage: `url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPSwEI15YPKGidtXzXZIxcTJ4IIqZIis5RLdbxLyjq-vZsymS0gp9oQtr0rBkCCXLJjto&usqp=CAU")`,
+         height: '100vh'
+       }}>
         <Paper elevation={6} style={{ display: 'flex', minHeight: '370px', width: '670px' }}>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Grid container>

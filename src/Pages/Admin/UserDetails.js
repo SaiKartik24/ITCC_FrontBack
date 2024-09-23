@@ -177,7 +177,7 @@ export default function UserDetails() {
                   <ListItemAvatar>
                     <QuestionMarkIcon />
                   </ListItemAvatar>
-                  <ListItemText primary={question.question} secondary={format(new Date(question.createdDate), 'yyyy-MM-dd kk:mm:ss')} />
+                  <ListItemText primary={question.question} secondary= {format(new Date(question.createdDate), 'MMMM d, yyyy')} />
                 </ListItem>
               ))}
             </List>
@@ -189,7 +189,7 @@ export default function UserDetails() {
                   <ListItemAvatar>
                     <QuestionAnswerIcon />
                   </ListItemAvatar>
-                  <ListItemText primary={answer.answer} secondary={format(new Date(answer.createdDate), 'yyyy-MM-dd kk:mm:ss')} />
+                  <ListItemText primary={answer.answer} secondary= {format(new Date(answer.createdDate), 'MMMM d, yyyy')} />
                 </ListItem>
               ))}
             </List>
@@ -208,7 +208,7 @@ export default function UserDetails() {
                   <Typography variant="body2" dangerouslySetInnerHTML={{ __html: article.title }} />
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Typography variant="body2" color="textSecondary">
-                      userName - {format(new Date(article.createdDate), 'MMMM d, yyyy')}
+                      {format(new Date(article.createdDate), 'MMMM d, yyyy')}
                     </Typography></Box></Box>
 
               </ListItem>
