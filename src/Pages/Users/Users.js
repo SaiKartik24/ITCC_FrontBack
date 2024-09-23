@@ -1,40 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
     Box, Tabs, Tab, Typography, IconButton, ListItem, ListItemText, List,
-    Badge, Fab, Button, Paper, InputBase, Dialog, DialogActions, DialogContent, DialogTitle, TextField, ListItemAvatar, Pagination
+    Badge, Fab, Paper, InputBase, ListItemAvatar, Pagination
 } from '@mui/material';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
-import CloseIcon from '@mui/icons-material/Close';
-import { styled } from '@mui/system';
 import PostQuestions from './PostQuestions';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { green, grey, red, yellow } from '@mui/material/colors';
-
-const CustomDialog = styled(Dialog)({
-    '& .MuiPaper-root': {
-        borderRadius: 20,
-        padding: '16px',
-        minWidth: 300,
-        maxWidth: 400,
-    },
-});
-const CustomTextField = styled(TextField)({});
-const CustomButton = styled(Button)({
-    backgroundColor: '#1976d2',
-    color: '#fff',
-    '&:hover': {
-        backgroundColor: '#1976d2',
-    },
-});
 
 export default function Users() {
     const [value, setValue] = useState(0);
     const [signupOpen, setSignupOpen] = useState(false);
-    const [open, setOpen] = useState(false);
     const [communities, setCommunities] = useState([]);
     const [searchValue, setSearchValue] = useState('');
     const [filteredData, setFilteredData] = useState([]);
@@ -43,19 +22,18 @@ export default function Users() {
     const handleSignupOpen = () => setSignupOpen(true);
     const [subValue, setSubValue] = useState(0);
     const navigate = useNavigate();
-    const [responseData, setResponseData] = useState([]); // Initialize as array
-    const [answerResponseData, setAnswerResponseData] = useState([]); // Same here
-    const [articles, setArticles] = useState([]); // Initialize as array
-    const [postResponseData, setPostResponseData] = useState([]); // Also initialize as array
+    const [responseData, setResponseData] = useState([]);
+    const [answerResponseData, setAnswerResponseData] = useState([]);
+    const [articles, setArticles] = useState([]);
+    const [postResponseData, setPostResponseData] = useState([]);
+    const [allArticles, setAllArticles] = useState([]);
     const [totalPages, setTotalPages] = useState(0);
     const [totalPagesAws, setTotalPagesAws] = useState(0);
     const [totalPagesArt, setTotalPagesArt] = useState(0);
     const [totalPagesAllPost, setTotalPagesAllPost] = useState(0);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [answersPage, setAnswersPage] = useState(1);
-    const [articlesPage, setArticlesPage] = useState(1);
+    const [totalPagesAllArticles, setTotalPagesAllArticles] = useState(0)
     const [postsPage, setPostsPage] = useState(1);
-
+    const [articleData, setArticleData] = useState([]);
     useEffect(() => {
         const token = localStorage.getItem('token');
         async function communities() {
@@ -113,7 +91,7 @@ export default function Users() {
                     `http://172.17.15.253:3002/questions/getQuestionByUserId/${decoded.userId}?page=${page}&limit=${limit}`,
                     (data) => {
                         setResponseData(data.questions);
-                        setTotalPages(Math.ceil(data.pages.total / data.pages.limit) || 0)
+                        setTotalPages(Math.ceil(data.pages.total / data.pages.limit) || 0);
                     }
                 );
             } else if (value === 1) {
@@ -129,55 +107,94 @@ export default function Users() {
                     `http://172.17.15.253:3002/articles/getArticles/${decoded.userId}?page=${page}&limit=${limit}`,
                     (data) => {
                         setArticles(data.article);
-                        setTotalPagesArt(Math.ceil(data.pages.total / data.pages.limit) || 0)
+                        setTotalPagesArt(Math.ceil(data.pages.total / data.pages.limit) || 0);
                     }
-
                 );
-                console.log(articles);
             } else if (value === 3) {
-                fetchData(
-                    `http://172.17.15.253:3002/questions?page=${page}&limit=${limit}`,
-                    (data) => {
-                        setPostResponseData(data.questions);
-                        setTotalPagesAllPost(Math.ceil(data.total / data.limit) || 0);
-                    }
-                );
+                if (subValue === 0) {
+                    fetchData(
+                        `http://172.17.15.253:3002/questions?page=${page}&limit=${limit}`,
+                        (data) => {
+                            setPostResponseData(data.questions);
+                            setTotalPagesAllPost(Math.ceil(data.total / data.limit) || 0);
+                        }
+                    );
+                } else if (subValue === 1) {
+                    fetchData(
+                        `http://172.17.15.253:3002/articles?page=${page}&limit=${limit}`,
+                        (data) => {
+                            setArticleData(data.articles);
+                            setTotalPagesAllArticles(Math.ceil(data.total / data.limit) || 0);
+                        }
+                    );
+                }
             }
         };
         fetchTabData();
-    }, [value]);
+    }, [value, subValue]);
     useEffect(() => {
+        let filtered = [];
+        
         if (searchValue.trim()) {
-            let filtered = [];
-            if (value === 0) {
-                filtered = responseData.filter((question) =>
-                    question.question.toLowerCase().includes(searchValue.toLowerCase())
-                );
-            } else if (value === 1) {
-                filtered = answerResponseData.filter((answer) =>
-                    answer.answer.toLowerCase().includes(searchValue.toLowerCase())
-                );
-            } else if (value === 2) {
-                console.log('value2', articles);
-                filtered = articles.filter((article1) =>
-                    article1.title.toLowerCase().includes(searchValue.toLowerCase())
-                );
-            } else if (value === 3) {
-                console.log('value3');
-                filtered = postResponseData.filter((post) =>
-                    post.question.toLowerCase().includes(searchValue.toLowerCase())
-                );
+            switch (value) {
+                case 0:
+                    filtered = responseData.filter((question) =>
+                        question.question.toLowerCase().includes(searchValue.toLowerCase())
+                    );
+                    break;
+                case 1:
+                    filtered = answerResponseData.filter((answer) =>
+                        answer.answer.toLowerCase().includes(searchValue.toLowerCase())
+                    );
+                    break;
+                case 2:
+                    filtered = articles.filter((article) =>
+                        article.title.toLowerCase().includes(searchValue.toLowerCase())
+                    );
+                    break;
+                default:
+                    switch (subValue) {
+                        case 0:
+                            filtered = postResponseData.filter((post) =>
+                                post.question.toLowerCase().includes(searchValue.toLowerCase())
+                            );
+                            break;
+                        case 1:
+                            filtered = articleData.filter((post) =>
+                                post.title.toLowerCase().includes(searchValue.toLowerCase())
+                            );
+                            break;
+                        default:
+                            break;
+                    }
             }
             setFilteredData(filtered);
         } else {
-            if (value === 0) setFilteredData(responseData);
-            if (value === 1) setFilteredData(answerResponseData);
-            if (value === 2) setFilteredData(articles);
-            if (value === 3) setFilteredData(postResponseData);
+            switch (value) {
+                case 0:
+                    setFilteredData(responseData);
+                    break;
+                case 1:
+                    setFilteredData(answerResponseData);
+                    break;
+                case 2:
+                    setFilteredData(articles);
+                    break;
+                default:
+                    switch (subValue) {
+                        case 0:
+                            setFilteredData(postResponseData);
+                            break;
+                        case 1:
+                            setFilteredData(articleData);
+                            break;
+                        default:
+                            break;
+                    }
+            }
         }
-    }, [searchValue, responseData, answerResponseData, articles, postResponseData, value]);
-
-
+    }, [searchValue, responseData, answerResponseData, articles, postResponseData, value, subValue]);
+    
     const handleKeyUp = (event) => {
         if (event.key === 'Enter') {
             search();
@@ -186,9 +203,8 @@ export default function Users() {
     const search = () => {
         setSearchValue(searchValue.trim());
     };
-    const handleSubChange = () => {
+    const handleSubChange = (event, newValue) => { setSubValue(newValue) }
 
-    }
     const publicQuestionClick = (ques, question) => {
         const questionStatusList = responseData.map((item) => ({
             question: item.question,
@@ -339,32 +355,6 @@ export default function Users() {
                         </List>
                     </Box>
                 )}
-                {/* {value === 3 && (
-                    <Box p={3}>
-                        <b>{filteredData.length} Posts</b>
-                        <List>
-                            {filteredData.map((ques, index) => (
-                                <ListItem key={index}>
-                                    <ListItemAvatar>
-                                        <Badge color="primary">
-                                            <QuestionAnswerIcon />
-                                        </Badge>
-                                    </ListItemAvatar>
-                                    <Box>
-                                        <Typography style={{
-                                            cursor: 'pointer', fontSize: '16px',
-                                            lineHeight: '1.5',
-                                        }} variant="body2" dangerouslySetInnerHTML={{ __html: ques.question }} onClick={() => publicQuestionClick(ques._id)} />
-                                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                                            <Typography variant="body2" color="textSecondary">
-                                                {ques.userName}     {format(new Date(ques.createdDate), 'MMMM d, yyyy')}
-                                            </Typography></Box></Box>
-
-                                </ListItem>
-                            ))}
-                        </List>
-                    </Box>
-                )} */}
                 {value === 3 && (
                     <Box>
                         <Typography></Typography>
@@ -376,12 +366,48 @@ export default function Users() {
                         {subValue === 0 && (
                             <Box p={3}>
                                 <b>{filteredData.length} All Questions</b>
+                                {filteredData.map((ques, index) => (
+                                    <ListItem key={index}>
+                                        <ListItemAvatar>
+                                            <Badge color="primary">
+                                                <QuestionAnswerIcon />
+                                            </Badge>
+                                        </ListItemAvatar>
+                                        <Box>
+                                            <Typography style={{
+                                                cursor: 'pointer', fontSize: '16px',
+                                                lineHeight: '1.5',
+                                            }} variant="body2" dangerouslySetInnerHTML={{ __html: ques.question }} onClick={() => publicQuestionClick(ques._id)} />
+                                            <Box display="flex" justifyContent="space-between" alignItems="center">
+                                                <Typography variant="body2" color="textSecondary">
+                                                    {ques.userName}     {format(new Date(ques.createdDate), 'MMMM d, yyyy')}
+                                                </Typography></Box></Box>
+
+                                    </ListItem>
+                                ))}
                             </Box>
                         )}
-
                         {subValue === 1 && (
                             <Box p={3}>
-                                <b>{filteredData.length} All Articles</b>
+                                <b>{filteredData.length} Articles</b>
+                                {filteredData.map((article, index) => (
+                                    <ListItem key={index}>
+                                        <ListItemAvatar>
+                                            <Badge color="primary">
+                                                <QuestionAnswerIcon />
+                                            </Badge>
+                                        </ListItemAvatar>
+                                        <Box>
+                                            <Typography style={{
+                                                cursor: 'pointer', fontSize: '16px',
+                                                lineHeight: '1.5',
+                                            }} variant="body2" dangerouslySetInnerHTML={{ __html: article.title }} />
+                                            <Box display="flex" justifyContent="space-between" alignItems="center">
+                                            </Box>
+                                        </Box>
+
+                                    </ListItem>
+                                ))}
                             </Box>
                         )}
                     </Box>
