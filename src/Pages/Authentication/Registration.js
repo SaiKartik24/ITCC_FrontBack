@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Grid,TextField,Button,Dialog,DialogTitle, DialogContent,Typography, FormControl,FormHelperText,InputLabel,
-  MenuItem,Select, Box} from "@mui/material";
+import {
+  Grid, TextField, Button, Dialog, DialogTitle, DialogContent, Typography, FormControl, FormHelperText, InputLabel,
+  MenuItem, Select, Box,
+  IconButton
+} from "@mui/material";
 import { DevTool } from "@hookform/devtools";
 import usePost from "../../ServiceHelper/Api/usePost";
 import useGet from "../../ServiceHelper/Api/useGet";
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useNavigate } from "react-router-dom";
 
 function Registration(props) {
   const form = useForm({
@@ -21,6 +26,7 @@ function Registration(props) {
   const getHook = useGet(getUrl);
   const [selectedCommunity, setSelectedCommunity] = useState("");
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (getUrl === "") {
@@ -67,6 +73,14 @@ function Registration(props) {
 
   return (
     <>
+      <Box my={3} display="flex" justifyContent="space-between" alignItems="center">
+        <Typography variant="h5">Post Details</Typography>
+        <Typography variant="body2" sx={{ fontWeight: 'bold', ml: 2 }}>
+          <IconButton type="button" sx={{ p: '1px' }} aria-label="search" color='primary' onClick={() => navigate(-1)}>
+            <ArrowBackIcon /> Go Back
+          </IconButton>
+        </Typography>
+      </Box>
       <Dialog open={props.signupOpen} onClose={handleClose} maxWidth="md" fullWidth>
         <DialogTitle>
           <Typography variant="h5" component="div" align="center" gutterBottom>

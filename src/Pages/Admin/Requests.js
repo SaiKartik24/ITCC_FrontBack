@@ -72,11 +72,11 @@ export default function Requests() {
     }
     return (
         <div>
-            <Box my={4}>
+            {/* <Box my={4}> */}
                 <Typography variant="h5" component="h1" gutterBottom>
                     User Requests
                 </Typography>
-            </Box>
+            {/* </Box> */}
             <Box sx={{ width: '100%' }}>
                 <Tabs value={tabValue} onChange={handleTabChange} aria-label="user profile tabs">
                     <Tab label="Question " value="question" />

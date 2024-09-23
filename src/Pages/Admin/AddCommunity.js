@@ -57,7 +57,7 @@ function AddCommunities(props) {
                                     fullWidth
                                     type="text"
                                     id="label"
-                                    label="Label"
+                                    label="Community Type"
                                     variant="outlined"
                                     margin="normal"
                                     {...register("label", {
@@ -99,7 +99,7 @@ function AddCommunities(props) {
                                     helperText={errors.tag?.message}
                                 />
                             </Grid>
-                            <Grid item xs={4}>
+                            {/* <Grid item xs={4}>
                                 <TextField
                                     fullWidth
                                     type="text"
@@ -121,7 +121,7 @@ function AddCommunities(props) {
                                     error={!!errors.value}
                                     helperText={errors.value?.message}
                                 />
-                            </Grid>
+                            </Grid> */}
                             <Grid item xs={8}>
                                 <TextField
                                     fullWidth
