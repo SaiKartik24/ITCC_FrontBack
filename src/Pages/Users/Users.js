@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Box, Tabs, Tab, Typography, IconButton, ListItem, ListItemText, List,
-    Badge, Fab, Button, Paper, InputBase, Dialog, DialogActions, DialogContent, DialogTitle, TextField, ListItemAvatar,
-    Pagination
+    Badge, Fab, Button, Paper, InputBase, Dialog, DialogActions, DialogContent, DialogTitle, TextField, ListItemAvatar, Pagination
 } from '@mui/material';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import AddIcon from '@mui/icons-material/Add';
@@ -36,14 +35,18 @@ export default function Users() {
     const [value, setValue] = useState(0);
     const [signupOpen, setSignupOpen] = useState(false);
     const [open, setOpen] = useState(false);
-    const [communities, setCommunities] = useState({});
-    const [responseData, setResponseData] = useState([]);
-    const [answerResponseData, setanswerResponseData] = useState([]);
-    const [postResponseData, setpostResponseData] = useState([]);
-    const [articles, setArticles] = useState([]);
-
-    // const [questionsPage, setQuestionsPage] = useState(1);
-
+    const [communities, setCommunities] = useState([]);
+    const [searchValue, setSearchValue] = useState('');
+    const [filteredData, setFilteredData] = useState([]);
+    const handleChange = (event, newValue) => { setValue(newValue) };
+    const handleSignupClose = () => setSignupOpen(false);
+    const handleSignupOpen = () => setSignupOpen(true);
+    const [subValue, setSubValue] = useState(0);
+    const navigate = useNavigate();
+    const [responseData, setResponseData] = useState([]); // Initialize as array
+    const [answerResponseData, setAnswerResponseData] = useState([]); // Same here
+    const [articles, setArticles] = useState([]); // Initialize as array
+    const [postResponseData, setPostResponseData] = useState([]); // Also initialize as array
     const [totalPages, setTotalPages] = useState(0);
     const [totalPagesAws, setTotalPagesAws] = useState(0);
     const [totalPagesArt, setTotalPagesArt] = useState(0);
@@ -53,39 +56,11 @@ export default function Users() {
     const [articlesPage, setArticlesPage] = useState(1);
     const [postsPage, setPostsPage] = useState(1);
 
-
-    const handleChange = (event, newValue) => { setValue(newValue) };
-    const handleSignupClose = () => setSignupOpen(false);
-    const handleSignupOpen = () => setSignupOpen(true);
-
-    const navigate = useNavigate();
-    const token = localStorage.getItem('token');
-    let decoded = jwtDecode(token);
-    console.log(decoded);
     useEffect(() => {
-
-        const fetchData = async (page) => {
-            try {
-                const response = await fetch(`http://172.17.15.253:3002/questions/getQuestionByUserId/${decoded.userId}?page=${page}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status}`);
-                }
-                const data = await response.json();
-                setResponseData(data.questions || []);
-                setTotalPages(Math.ceil(data.pages.total / data.pages.limit) || 0); // Calculate total pages
-            } catch (error) {
-                console.error('Error fetching question data:', error);
-            }
-        };
+        const token = localStorage.getItem('token');
         async function communities() {
             try {
-                const communityResponse = await fetch('http://172.17.15.253:3002/lookup/getCommunity', {
+                const communityResponse = await fetch('http://172.17.15.253:3002/communityList/getCommunity', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -97,7 +72,7 @@ export default function Users() {
                 }
                 const communityData = await communityResponse.json();
                 const communityMap = communityData.reduce((acc, community) => {
-                    acc[community.value] = community.label;
+                    acc[community.communityCode] = community.communityName;
                     return acc;
                 }, {});
                 setCommunities(communityMap);
@@ -106,41 +81,15 @@ export default function Users() {
             }
         }
         communities();
-        fetchData(currentPage);
-    }, [currentPage]);
+    }, []);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
+        if (!token) return;
         const decoded = jwtDecode(token);
-        const fetchData = async () => {
+        const fetchData = async (url, setter) => {
             try {
-                const response = await fetch(`http://172.17.15.253:3002/articles/getArticles/${decoded.userId}?page=${articlesPage}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                });
-                if (!response.ok) {
-                    throw new Error('Failed to fetch users');
-                }
-                const data = await response.json();
-                setArticles(data.article || []);
-                console.log(data.article);
-                setTotalPagesArt(Math.ceil(data.pages.total / data.pages.limit) || 0);
-            } catch (error) {
-                console.error('Error fetching question data:', error);
-            }
-        };
-        fetchData();
-    }, [articlesPage]);
-
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        const decoded = jwtDecode(token);
-        const fetchData = async () => {
-            try {
-                const response = await fetch(`http://172.17.15.253:3002/answers/getAnswersByUserId/${decoded.userId}?page=${answersPage}`, {
+                const response = await fetch(url, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -151,58 +100,110 @@ export default function Users() {
                     throw new Error(`Error: ${response.status}`);
                 }
                 const data = await response.json();
-                setanswerResponseData(data.answers);
-                setTotalPagesAws(Math.ceil(data.pages.total / data.pages.limit) || 0);
+                setter(data);
             } catch (error) {
-                console.error('Error fetching question data:', error);
+                console.error(`Error fetching data from ${url}:`, error);
             }
         };
-        fetchData();
-    }, [answersPage]);
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        const fetchData = async () => {
-            try {
-                const response = await fetch(` http://172.17.15.253:3002/questions?page=${postsPage}`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
+        const fetchTabData = () => {
+            const page = 1;
+            const limit = 50;
+            if (value === 0) {
+                fetchData(
+                    `http://172.17.15.253:3002/questions/getQuestionByUserId/${decoded.userId}?page=${page}&limit=${limit}`,
+                    (data) => {
+                        setResponseData(data.questions);
+                        setTotalPages(Math.ceil(data.pages.total / data.pages.limit) || 0)
                     }
-                });
-                if (!response.ok) {
-                    throw new Error(`Error: ${response.status}`);
-                }
-                const data = await response.json();
-                console.log(data);
-                setpostResponseData(data.questions)
-                setTotalPagesAllPost(Math.ceil(data.total / data.limit) || 0);
-            } catch (error) {
-                console.error('Error fetching question data:', error);
+                );
+            } else if (value === 1) {
+                fetchData(
+                    `http://172.17.15.253:3002/answers/getAnswersByUserId/${decoded.userId}?page=${page}&limit=${limit}`,
+                    (data) => {
+                        setAnswerResponseData(data.answers);
+                        setTotalPagesAws(Math.ceil(data.pages.total / data.pages.limit) || 0);
+                    }
+                );
+            } else if (value === 2) {
+                fetchData(
+                    `http://172.17.15.253:3002/articles/getArticles/${decoded.userId}?page=${page}&limit=${limit}`,
+                    (data) => {
+                        setArticles(data.article);
+                        setTotalPagesArt(Math.ceil(data.pages.total / data.pages.limit) || 0)
+                    }
+
+                );
+                console.log(articles);
+            } else if (value === 3) {
+                fetchData(
+                    `http://172.17.15.253:3002/questions?page=${page}&limit=${limit}`,
+                    (data) => {
+                        setPostResponseData(data.questions);
+                        setTotalPagesAllPost(Math.ceil(data.total / data.limit) || 0);
+                    }
+                );
             }
         };
-        fetchData();
-    }, [postsPage]);
-
-    const publicQuestionClick = (ques, question) => {
-
-        if (!responseData || responseData.length === 0) {
-            console.error('No response data available');
-            return;
-        }
-
-        console.log(responseData);
-
-        const normalizedStatuses = responseData.filter(item => item._id === ques)[0].status
-
-        console.log('Normalized question statuses:', normalizedStatuses);
-
-        if (normalizedStatuses === 'approved') {
-            console.log('Navigating to post screen...');
-            navigate('/user-post', { state: { ques, question } });
+        fetchTabData();
+    }, [value]);
+    useEffect(() => {
+        if (searchValue.trim()) {
+            let filtered = [];
+            if (value === 0) {
+                filtered = responseData.filter((question) =>
+                    question.question.toLowerCase().includes(searchValue.toLowerCase())
+                );
+            } else if (value === 1) {
+                filtered = answerResponseData.filter((answer) =>
+                    answer.answer.toLowerCase().includes(searchValue.toLowerCase())
+                );
+            } else if (value === 2) {
+                console.log('value2', articles);
+                filtered = articles.filter((article1) =>
+                    article1.title.toLowerCase().includes(searchValue.toLowerCase())
+                );
+            } else if (value === 3) {
+                console.log('value3');
+                filtered = postResponseData.filter((post) =>
+                    post.question.toLowerCase().includes(searchValue.toLowerCase())
+                );
+            }
+            setFilteredData(filtered);
         } else {
-            console.log('Navigating to view question screen...');
+            if (value === 0) setFilteredData(responseData);
+            if (value === 1) setFilteredData(answerResponseData);
+            if (value === 2) setFilteredData(articles);
+            if (value === 3) setFilteredData(postResponseData);
+        }
+    }, [searchValue, responseData, answerResponseData, articles, postResponseData, value]);
+
+
+    const handleKeyUp = (event) => {
+        if (event.key === 'Enter') {
+            search();
+        }
+    };
+    const search = () => {
+        setSearchValue(searchValue.trim());
+    };
+    const handleSubChange = () => {
+
+    }
+    const publicQuestionClick = (ques, question) => {
+        const questionStatusList = responseData.map((item) => ({
+            question: item.question,
+            status: item.status
+        }));
+        console.log('Question statuses:', questionStatusList);
+        const hasMatchingStatus = questionStatusList.some(
+            (item) => item.status === 'underReview' || item.status === 'approved' || item.status === 'blocked'
+        );
+        if (hasMatchingStatus) {
+            console.log('if');
             navigate('/question', { state: { ques } });
+        } else {
+            console.log('else');
+            navigate('/user-post', { state: { ques, question } });
         }
     };
 
@@ -212,7 +213,6 @@ export default function Users() {
     function truncateText(text, maxLength) {
         return text.length <= maxLength ? text : text.substring(0, maxLength) + '...';
     }
-    const handlePageChange = (event, page) => setCurrentPage(page);
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
@@ -224,6 +224,9 @@ export default function Users() {
                         sx={{ ml: 1, flex: 1 }}
                         placeholder="Search here....."
                         inputProps={{ 'aria-label': 'search' }}
+                        value={searchValue}
+                        onChange={(e) => setSearchValue(e.target.value)}
+                        onKeyUp={handleKeyUp}
                     />
                     <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
                         <SearchIcon />
@@ -239,9 +242,9 @@ export default function Users() {
                 </Tabs>
                 {value === 0 && (
                     <Box p={3}>
-                        <b>{responseData.length} Questions</b>
+                        <b>{filteredData.length} Questions</b>
                         <List>
-                            {responseData.map((question, index) => (
+                            {filteredData.map((question, index) => (
                                 <ListItem key={index}>
                                     <ListItemAvatar>
                                         <Badge color="primary">
@@ -250,54 +253,47 @@ export default function Users() {
                                     </ListItemAvatar>
                                     <ListItemText
                                         primary={question.question}
-                                        secondary={
-                                            <Box display="flex" justifyContent="space-between" alignItems="center">
-                                                {question.community.map((communityId, index) => (
-                                                    <Typography variant="body2" color="primary">
-                                                        {communities[communityId]}
-                                                        <Typography variant="body2" color="textSecondary">
-                                                            {format(new Date(question.createdDate), 'MMMM d, yyyy')}
-                                                        </Typography>
-                                                    </Typography>
-                                                ))}
+                                        // secondary={
+                                        //     <Box display="flex" justifyContent="space-between" alignItems="center">
+                                        //         {question.community.map((communityId, index) => (
+                                        //             <Typography variant="body2" color="primary">
+                                        //                 {communities[communityId]}
+                                        //                 <Typography variant="body2" color="textSecondary">
+                                        //                     {format(new Date(question.createdDate), 'MMMM d, yyyy')}
+                                        //                 </Typography>
+                                        //             </Typography>
+                                        //         ))}
 
-                                                <Typography
-                                                    variant="body2"
-                                                    sx={{
-                                                        fontWeight: 'bold',
-                                                        ml: 2,
-                                                        color:
-                                                            question.status === 'published' ? green[600] :
-                                                                question.status === 'approved' ? green[600] :
-                                                                    question.status === 'blocked' ? red[500] :
-                                                                        question.status === 'Under Review' ? yellow[700] :
-                                                                            grey[600],
-                                                    }}
-                                                >
-                                                    {question.status.charAt(0).toUpperCase() + question.status.slice(1)}
-                                                </Typography>
-                                            </Box>
-                                        }
+                                        //         <Typography
+                                        //             variant="body2"
+                                        //             sx={{
+                                        //                 fontWeight: 'bold',
+                                        //                 ml: 2,
+                                        //                 color:
+                                        //                     question.status === 'published' ? green[600] :
+                                        //                         question.status === 'approved' ? green[600] :
+                                        //                             question.status === 'blocked' ? red[500] :
+                                        //                                 question.status === 'Under Review' ? yellow[700] :
+                                        //                                     grey[600],
+                                        //             }}
+                                        //         >
+                                        //             {question.status.charAt(0).toUpperCase() + question.status.slice(1)}
+                                        //         </Typography>
+                                        //     </Box>
+                                        // }
                                         style={{ cursor: 'pointer' }}
                                         onClick={() => publicQuestionClick(question._id)}
                                     />
                                 </ListItem>
                             ))}
                         </List>
-                        <Box display="flex" justifyContent="center" mt={2}>
-                        <Pagination 
-                                count={totalPages} 
-                                page={currentPage} 
-                                onChange={handlePageChange} 
-                                color="primary"
-                            /></Box>
                     </Box>
                 )}
                 {value === 1 && (
                     <Box p={3}>
-                        <b>{answerResponseData.length} Answers</b>
+                        <b>{filteredData.length} Answers</b>
                         <List>
-                            {answerResponseData.map((answer, index) => (
+                            {filteredData.map((answer, index) => (
                                 <ListItem key={index}>
                                     <ListItemAvatar>
                                         <Badge badgeContent={answer.votes} color="primary">
@@ -309,13 +305,6 @@ export default function Users() {
                                 </ListItem>
                             ))}
                         </List>
-                        <Box display="flex" justifyContent="center" mt={2}>
-                        <Pagination
-                            count={totalPagesAws}
-                            page={answersPage}
-                            onChange={(e, page) => setAnswersPage(page)}
-                            color="primary"
-                        /></Box>
                     </Box>
                 )}
                 {value === 2 && (
@@ -348,20 +337,13 @@ export default function Users() {
                                 </ListItem>
                             ))}
                         </List>
-                        <Box display="flex" justifyContent="center" mt={2}>
-                        <Pagination
-                            count={totalPagesArt}
-                            page={articlesPage}
-                            onChange={(e, page) => setArticlesPage(page)}
-                            color="primary"
-                        /></Box>
                     </Box>
                 )}
-                {value === 3 && (
+                {/* {value === 3 && (
                     <Box p={3}>
-                        <b>{postResponseData.length} Posts</b>
+                        <b>{filteredData.length} Posts</b>
                         <List>
-                            {postResponseData.map((ques, index) => (
+                            {filteredData.map((ques, index) => (
                                 <ListItem key={index}>
                                     <ListItemAvatar>
                                         <Badge color="primary">
@@ -381,46 +363,37 @@ export default function Users() {
                                 </ListItem>
                             ))}
                         </List>
-                        <Box display="flex" justifyContent="center" mt={2}>
-                        <Pagination
-                            count={totalPagesAllPost}
-                            page={postsPage}
-                            onChange={(e, page) => setPostsPage(page)}
-                            color="primary"
-                        /></Box>
+                    </Box>
+                )} */}
+                {value === 3 && (
+                    <Box>
+                        <Typography></Typography>
+                        <Tabs value={subValue} onChange={handleSubChange} aria-label="sub tabs under All Posts">
+                            <Tab label="All Questions" value={0} />
+                            <Tab label="All Articles" value={1} />
+                        </Tabs>
+
+                        {subValue === 0 && (
+                            <Box p={3}>
+                                <b>{filteredData.length} All Questions</b>
+                            </Box>
+                        )}
+
+                        {subValue === 1 && (
+                            <Box p={3}>
+                                <b>{filteredData.length} All Articles</b>
+                            </Box>
+                        )}
                     </Box>
                 )}
+                <Box display="flex" justifyContent="center" mt={2}>
+                    <Pagination
+                        count={totalPagesAllPost}
+                        page={postsPage}
+                        onChange={(e, page) => setPostsPage(page)}
+                        color="primary"
+                    /></Box>
             </Box>
-            <CustomDialog
-                open={open}
-                onClose={handleSignupClose}
-                aria-labelledby="ask-question-dialog-title"
-                aria-describedby="ask-question-dialog-description">
-                <DialogActions>
-                    <IconButton
-                        edge="start"
-                        color="inherit"
-                        onClick={handleSignupClose}
-                        aria-label="close">
-                        <CloseIcon />
-                    </IconButton>
-                </DialogActions>
-                <DialogTitle>Ask your Query ?</DialogTitle>
-                <DialogContent>
-                    <CustomTextField
-                        autoFocus
-                        margin="dense"
-                        id="question"
-                        label="Type something..."
-                        type="text"
-                        fullWidth
-                        variant="outlined"
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <CustomButton onClick={handleSignupClose}>Submit</CustomButton>
-                </DialogActions>
-            </CustomDialog>
             <PostQuestions signupOpen={signupOpen} handleSignupClose={handleSignupClose} />
             <Fab
                 color="primary"
